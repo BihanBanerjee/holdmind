@@ -51,10 +51,14 @@ def get_claim_detail(store: MemoryStore, claim_id: str) -> ClaimDetailResponse |
         return None
 
     history = store.get_confidence_history(claim_id)
-    edges = store.get_all_edges()
+    # Only load edges that involve this claim to avoid O(n) full-graph rebuild
+    relevant_edges = [
+        e for e in store.get_all_edges()
+        if e.src_id == claim_id or e.dst_id == claim_id
+    ]
 
     graph = BeliefGraph()
-    for edge in edges:
+    for edge in relevant_edges:
         graph.add(edge)
 
     return ClaimDetailResponse(
