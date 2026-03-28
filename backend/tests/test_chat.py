@@ -31,8 +31,11 @@ def test_chat_streams_sse(client, db):
     # We only need to override require_api_key to skip the encrypted-key check
     app.dependency_overrides[require_api_key] = lambda: "sk-or-test"
 
+    mock_store = MagicMock()
+    mock_store.semantic_query.return_value = []
+
     try:
-        with patch("routes.chat.get_relevant_memories", return_value=[]), \
+        with patch("routes.chat.get_user_store", return_value=mock_store), \
              patch("routes.chat.stream_response", return_value=iter(["Hello", " world"])), \
              patch("routes.chat.extract_and_store", return_value=[]), \
              patch("routes.chat.save_messages"):

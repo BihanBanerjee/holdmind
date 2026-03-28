@@ -61,10 +61,12 @@ def extract_and_store(
     ai_response: str,
     user_id: str,
     api_key: str,
+    store=None,  # optional pre-built store to avoid double initialization
 ) -> list[dict]:
     """Extract claims from conversation turn and store via MemoryUpdater."""
     combined = f"User: {user_message}\nAssistant: {ai_response}"
-    store = get_user_store(user_id, api_key)
+    if store is None:
+        store = get_user_store(user_id, api_key)
     extractor = get_extractor(api_key)
     updater = get_updater(store, api_key)
 
