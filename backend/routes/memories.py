@@ -16,7 +16,10 @@ def graph(
     api_key: str = Depends(require_api_key),
 ):
     store = get_user_store(current_user.id, api_key)
-    return get_graph_data(store)
+    try:
+        return get_graph_data(store)
+    finally:
+        store.db.close()
 
 
 @router.get("/{claim_id}", response_model=ClaimDetailResponse)
@@ -26,10 +29,13 @@ def get_one(
     api_key: str = Depends(require_api_key),
 ):
     store = get_user_store(current_user.id, api_key)
-    detail = get_claim_detail(store, claim_id)
-    if detail is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Claim not found")
-    return detail
+    try:
+        detail = get_claim_detail(store, claim_id)
+        if detail is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Claim not found")
+        return detail
+    finally:
+        store.db.close()
 
 
 @router.delete("/{claim_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -39,5 +45,8 @@ def delete(
     api_key: str = Depends(require_api_key),
 ):
     store = get_user_store(current_user.id, api_key)
-    if not store.delete(claim_id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Claim not found")
+    try:
+        if not store.delete(claim_id):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Claim not found")
+    finally:
+        store.db.close()
