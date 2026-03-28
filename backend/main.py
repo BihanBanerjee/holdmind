@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from routes.auth import router as auth_router
+from routes.conversations import router as conversations_router
 
 app = FastAPI(title="Holdmind API")
 
@@ -16,3 +17,4 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(conversations_router)
