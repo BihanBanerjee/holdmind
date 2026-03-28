@@ -1,7 +1,10 @@
 # holdmind/backend/memory/factory.py
 import os
 
-from recollectx.db.database import SessionLocal, create_tables
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
+
+from recollectx.db.database import Base
 from recollectx.extractors.llm import LLMExtractor
 from recollectx.llm.providers.openrouter import OpenRouterProvider
 from recollectx.storage.memory_store import MemoryStore
@@ -23,15 +26,32 @@ def _make_provider(api_key: str) -> OpenRouterProvider:
     )
 
 
+def _make_db_session(db_path: str) -> Session:
+    """Create a fresh SQLAlchemy session bound to a specific SQLite file.
+
+    Bypasses recollectx's module-level global engine/sessionmaker singleton,
+    which would silently reuse the first-ever db_path for all subsequent calls.
+    """
+    engine = create_engine(
+        f"sqlite:///{db_path}",
+        connect_args={"check_same_thread": False},
+    )
+    import recollectx.db.models  # noqa: F401 — register ORM models with Base
+    Base.metadata.create_all(bind=engine)
+    return sessionmaker(autoflush=False, autocommit=False, bind=engine)()
+
+
 def get_user_store(user_id: str, api_key: str) -> MemoryStore:
-    """Create a per-user MemoryStore (SQLite + Qdrant)."""
+    """Create a per-user MemoryStore (SQLite + Qdrant).
+
+    Each user gets an isolated SQLite file and a scoped Qdrant collection.
+    Caller is responsible for closing the underlying DB session when done.
+    """
     db_dir = settings.memory_db_dir
     os.makedirs(db_dir, exist_ok=True)
     db_path = os.path.join(db_dir, f"{user_id}.db")
 
-    create_tables(db_path)
-    db = SessionLocal(db_path)
-
+    db = _make_db_session(db_path)
     provider = _make_provider(api_key)
 
     vectors = QdrantBackend(
