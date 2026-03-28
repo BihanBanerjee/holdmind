@@ -22,7 +22,7 @@ from services.conversation_service import (
 router = APIRouter(prefix="/api/conversations", tags=["conversations"])
 
 
-@router.post("", response_model=ConversationResponse)
+@router.post("", response_model=ConversationResponse, status_code=status.HTTP_201_CREATED)
 def create(
     body: ConversationCreate,
     current_user: User = Depends(get_current_user),

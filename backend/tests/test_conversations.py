@@ -11,7 +11,7 @@ def auth_client(client):
 def test_create_conversation(auth_client):
     client, headers = auth_client
     resp = client.post("/api/conversations", json={"title": "Test Chat"}, headers=headers)
-    assert resp.status_code == 200
+    assert resp.status_code == 201
     data = resp.json()
     assert data["title"] == "Test Chat"
     assert "id" in data
