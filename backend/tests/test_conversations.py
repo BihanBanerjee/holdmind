@@ -167,3 +167,16 @@ def test_patch_conversation_other_user(client):
     resp = client.patch(f"/api/conversations/{conv_id}", json={"title": "Stolen"},
                         headers={"Authorization": f"Bearer {b_token}"})
     assert resp.status_code == 404
+
+def test_patch_conversation_both_fields(auth_client):
+    client, headers = auth_client
+    create = client.post("/api/conversations", json={"title": "Old"}, headers=headers)
+    conv_id = create.json()["id"]
+    resp = client.patch(
+        f"/api/conversations/{conv_id}",
+        json={"title": "New", "archived": True},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    assert resp.json()["title"] == "New"
+    assert resp.json()["archived"] is True
