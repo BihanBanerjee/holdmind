@@ -19,6 +19,7 @@ from services.conversation_service import (
     get_conversation,
     get_messages,
     list_conversations,
+    patch_conversation,
 )
 
 router = APIRouter(prefix="/api/conversations", tags=["conversations"])
@@ -43,6 +44,19 @@ def list_all(
 ):
     items, total = list_conversations(db, current_user.id, limit, offset, archived)
     return PaginatedConversationResponse(items=items, total=total, limit=limit, offset=offset)
+
+
+@router.patch("/{conversation_id}", response_model=ConversationResponse)
+def patch(
+    conversation_id: str,
+    body: PatchConversationRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    conv = patch_conversation(db, conversation_id, current_user.id, body.title, body.archived)
+    if conv is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+    return conv
 
 
 @router.get("/{conversation_id}", response_model=ConversationDetailResponse)

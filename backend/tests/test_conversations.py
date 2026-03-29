@@ -117,3 +117,53 @@ def test_list_conversations_archived_filter(auth_client):
     archived = client.get("/api/conversations?archived=true", headers=headers)
     assert archived.json()["total"] == 0
     assert archived.json()["items"] == []
+
+
+def test_rename_conversation(auth_client):
+    client, headers = auth_client
+    create = client.post("/api/conversations", json={"title": "Old Title"}, headers=headers)
+    conv_id = create.json()["id"]
+    resp = client.patch(f"/api/conversations/{conv_id}", json={"title": "New Title"}, headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["title"] == "New Title"
+
+def test_archive_conversation(auth_client):
+    client, headers = auth_client
+    create = client.post("/api/conversations", json={"title": "Chat"}, headers=headers)
+    conv_id = create.json()["id"]
+    resp = client.patch(f"/api/conversations/{conv_id}", json={"archived": True}, headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["archived"] is True
+
+def test_archived_excluded_from_active_list(auth_client):
+    client, headers = auth_client
+    create = client.post("/api/conversations", json={"title": "Chat"}, headers=headers)
+    conv_id = create.json()["id"]
+    client.patch(f"/api/conversations/{conv_id}", json={"archived": True}, headers=headers)
+    active = client.get("/api/conversations?archived=false", headers=headers)
+    assert all(c["id"] != conv_id for c in active.json()["items"])
+
+def test_archived_appears_in_archived_list(auth_client):
+    client, headers = auth_client
+    create = client.post("/api/conversations", json={"title": "Chat"}, headers=headers)
+    conv_id = create.json()["id"]
+    client.patch(f"/api/conversations/{conv_id}", json={"archived": True}, headers=headers)
+    archived = client.get("/api/conversations?archived=true", headers=headers)
+    assert any(c["id"] == conv_id for c in archived.json()["items"])
+
+def test_patch_conversation_not_found(auth_client):
+    client, headers = auth_client
+    resp = client.patch("/api/conversations/nonexistent", json={"title": "X"}, headers=headers)
+    assert resp.status_code == 404
+
+def test_patch_conversation_other_user(client):
+    a = client.post("/api/auth/signup", json={"email": "a@test.com", "password": "pass"})
+    a_token = a.json()["access_token"]
+    conv = client.post("/api/conversations", json={"title": "Chat"},
+                       headers={"Authorization": f"Bearer {a_token}"})
+    conv_id = conv.json()["id"]
+    b = client.post("/api/auth/signup", json={"email": "b@test.com", "password": "pass"})
+    b_token = b.json()["access_token"]
+    resp = client.patch(f"/api/conversations/{conv_id}", json={"title": "Stolen"},
+                        headers={"Authorization": f"Bearer {b_token}"})
+    assert resp.status_code == 404

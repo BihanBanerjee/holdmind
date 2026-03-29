@@ -56,6 +56,25 @@ def delete_conversation(db: Session, conversation_id: str, user_id: str) -> bool
     return True
 
 
+def patch_conversation(
+    db: Session,
+    conversation_id: str,
+    user_id: str,
+    title: str | None = None,
+    archived: bool | None = None,
+) -> Conversation | None:
+    conv = get_conversation(db, conversation_id, user_id)
+    if conv is None:
+        return None
+    if title is not None:
+        conv.title = title
+    if archived is not None:
+        conv.archived = archived
+    db.commit()
+    db.refresh(conv)
+    return conv
+
+
 def save_messages(
     db: Session,
     conversation_id: str,
