@@ -74,6 +74,15 @@ def test_list_conversations_returns_paginated_shape(auth_client):
     assert data["total"] == 0
 
 
+def test_list_conversations_default_params(auth_client):
+    client, headers = auth_client
+    resp = client.get("/api/conversations", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["limit"] == 20
+    assert data["offset"] == 0
+
+
 def test_list_conversations_paginated(auth_client):
     client, headers = auth_client
     for i in range(5):
@@ -94,11 +103,17 @@ def test_list_conversations_offset(auth_client):
     resp = client.get("/api/conversations?limit=3&offset=3", headers=headers)
     assert resp.status_code == 200
     data = resp.json()
+    assert data["total"] == 5
     assert len(data["items"]) == 2
 
 
 def test_list_conversations_archived_filter(auth_client):
     client, headers = auth_client
-    resp = client.get("/api/conversations?archived=true", headers=headers)
-    assert resp.status_code == 200
-    assert resp.json()["items"] == []
+    # Create one active conversation
+    client.post("/api/conversations", json={"title": "Active Chat"}, headers=headers)
+    # Active list should have 1, archived list should have 0
+    active = client.get("/api/conversations?archived=false", headers=headers)
+    assert active.json()["total"] == 1
+    archived = client.get("/api/conversations?archived=true", headers=headers)
+    assert archived.json()["total"] == 0
+    assert archived.json()["items"] == []
