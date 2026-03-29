@@ -20,14 +20,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   function login(t: string) {
     localStorage.setItem("hm_token", t)
-    document.cookie = "hm_auth=1; path=/"
+    const secure = location.protocol === "https:" ? "; Secure" : ""
+    document.cookie = `hm_auth=1; path=/; SameSite=Strict${secure}`
     setToken(t)
     router.push("/chat")
   }
 
   function logout() {
     localStorage.removeItem("hm_token")
-    document.cookie = "hm_auth=; path=/; max-age=0"
+    const secure = location.protocol === "https:" ? "; Secure" : ""
+    document.cookie = `hm_auth=; path=/; max-age=0; SameSite=Strict${secure}`
     setToken(null)
     router.push("/login")
   }
