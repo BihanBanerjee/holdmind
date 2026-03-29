@@ -180,3 +180,62 @@ def test_patch_conversation_both_fields(auth_client):
     assert resp.status_code == 200
     assert resp.json()["title"] == "New"
     assert resp.json()["archived"] is True
+
+
+def test_list_messages_empty(auth_client):
+    client, headers = auth_client
+    create = client.post("/api/conversations", json={"title": "Chat"}, headers=headers)
+    conv_id = create.json()["id"]
+    resp = client.get(f"/api/conversations/{conv_id}/messages", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["items"] == []
+    assert data["total"] == 0
+
+def test_list_messages_paginated(auth_client, db):
+    from models.chat_message import ChatMessage
+    client, headers = auth_client
+    create = client.post("/api/conversations", json={"title": "Chat"}, headers=headers)
+    conv_id = create.json()["id"]
+    for i in range(5):
+        db.add(ChatMessage(conversation_id=conv_id, role="user", content=f"message {i}"))
+    db.commit()
+    resp = client.get(f"/api/conversations/{conv_id}/messages?limit=3&offset=0", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 5
+    assert len(data["items"]) == 3
+    assert data["limit"] == 3
+    assert data["offset"] == 0
+
+def test_list_messages_search(auth_client, db):
+    from models.chat_message import ChatMessage
+    client, headers = auth_client
+    create = client.post("/api/conversations", json={"title": "Chat"}, headers=headers)
+    conv_id = create.json()["id"]
+    db.add(ChatMessage(conversation_id=conv_id, role="user", content="hello world"))
+    db.add(ChatMessage(conversation_id=conv_id, role="assistant", content="goodbye world"))
+    db.add(ChatMessage(conversation_id=conv_id, role="user", content="something else"))
+    db.commit()
+    resp = client.get(f"/api/conversations/{conv_id}/messages?q=world", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 2
+    assert all("world" in m["content"] for m in data["items"])
+
+def test_list_messages_not_found(auth_client):
+    client, headers = auth_client
+    resp = client.get("/api/conversations/nonexistent/messages", headers=headers)
+    assert resp.status_code == 404
+
+def test_list_messages_other_user(client):
+    a = client.post("/api/auth/signup", json={"email": "a@test.com", "password": "pass"})
+    a_token = a.json()["access_token"]
+    conv = client.post("/api/conversations", json={"title": "Chat"},
+                       headers={"Authorization": f"Bearer {a_token}"})
+    conv_id = conv.json()["id"]
+    b = client.post("/api/auth/signup", json={"email": "b@test.com", "password": "pass"})
+    b_token = b.json()["access_token"]
+    resp = client.get(f"/api/conversations/{conv_id}/messages",
+                      headers={"Authorization": f"Bearer {b_token}"})
+    assert resp.status_code == 404

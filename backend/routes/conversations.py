@@ -11,6 +11,7 @@ from schemas.conversation import (
     ConversationResponse,
     MessageResponse,
     PaginatedConversationResponse,
+    PaginatedMessageResponse,
     PatchConversationRequest,
 )
 from services.conversation_service import (
@@ -19,6 +20,7 @@ from services.conversation_service import (
     get_conversation,
     get_messages,
     list_conversations,
+    list_messages,
     patch_conversation,
 )
 
@@ -72,6 +74,22 @@ def get_one(
     conv_data = ConversationResponse.model_validate(conv).model_dump()
     conv_data["messages"] = [MessageResponse.model_validate(m) for m in messages]
     return ConversationDetailResponse(**conv_data)
+
+
+@router.get("/{conversation_id}/messages", response_model=PaginatedMessageResponse)
+def list_messages_route(
+    conversation_id: str,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    q: str | None = Query(None),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    conv = get_conversation(db, conversation_id, current_user.id)
+    if conv is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+    items, total = list_messages(db, conversation_id, limit, offset, q)
+    return PaginatedMessageResponse(items=items, total=total, limit=limit, offset=offset)
 
 
 @router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)

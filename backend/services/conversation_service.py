@@ -75,6 +75,22 @@ def patch_conversation(
     return conv
 
 
+def list_messages(
+    db: Session,
+    conversation_id: str,
+    limit: int = 50,
+    offset: int = 0,
+    q: str | None = None,
+) -> tuple[list[ChatMessage], int]:
+    query = db.query(ChatMessage).filter(ChatMessage.conversation_id == conversation_id)
+    if q:
+        query = query.filter(ChatMessage.content.ilike(f"%{q}%"))
+    query = query.order_by(ChatMessage.created_at.asc())
+    total = query.count()
+    items = query.limit(limit).offset(offset).all()
+    return items, total
+
+
 def save_messages(
     db: Session,
     conversation_id: str,
