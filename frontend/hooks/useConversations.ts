@@ -60,7 +60,7 @@ export function useDeleteConversation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) =>
-      apiFetch(`/api/conversations/${id}`, { method: "DELETE" }),
+      apiFetch<void>(`/api/conversations/${id}`, { method: "DELETE" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["conversations"] }),
   })
 }
