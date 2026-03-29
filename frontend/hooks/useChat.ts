@@ -61,19 +61,20 @@ export function useChat(conversationId: string) {
               qc.invalidateQueries({ queryKey: ["conversations"] })
               return
             }
+            let frame: { type: string; content?: string; data?: unknown; message?: string }
             try {
-              const frame = JSON.parse(raw)
-              if (frame.type === "chunk") {
-                setStreamingContent(prev => prev + (frame.content as string))
-              }
-              if (frame.type === "claims") {
-                setClaims(frame.data as Claim[])
-              }
-              if (frame.type === "error") {
-                throw new Error(frame.message as string)
-              }
+              frame = JSON.parse(raw)
             } catch {
-              // malformed frame — skip
+              continue // malformed JSON — skip this frame
+            }
+            if (frame.type === "chunk") {
+              setStreamingContent(prev => prev + (frame.content as string))
+            }
+            if (frame.type === "claims") {
+              setClaims(frame.data as Claim[])
+            }
+            if (frame.type === "error") {
+              throw new Error(frame.message ?? "Streaming error")
             }
           }
         }

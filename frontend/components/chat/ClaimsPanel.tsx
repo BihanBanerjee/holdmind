@@ -23,7 +23,7 @@ export function ClaimsPanel({ claims }: Props) {
         <span>
           {claims.length} memor{claims.length === 1 ? "y" : "ies"} extracted
         </span>
-        {open ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
+        {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
       </button>
       {open && (
         <div className="px-4 pb-3 flex flex-col gap-2 max-h-36 overflow-y-auto">
