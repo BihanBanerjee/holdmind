@@ -12,7 +12,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import {
   DropdownMenu,
@@ -35,7 +34,13 @@ export function ConversationItem({ conversation, onNavigate }: Props) {
   const { mutate: patch } = usePatchConversation()
   const [renaming, setRenaming] = useState(false)
   const [title, setTitle] = useState(conversation.title)
+  const [archiveOpen, setArchiveOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Sync title when external prop changes (e.g. after successful rename PATCH)
+  useEffect(() => {
+    if (!renaming) setTitle(conversation.title)
+  }, [conversation.title, renaming])
 
   useEffect(() => {
     if (renaming) inputRef.current?.focus()
@@ -64,24 +69,24 @@ export function ConversationItem({ conversation, onNavigate }: Props) {
   }
 
   return (
-    <div
-      className={`group flex items-center rounded-md px-2 py-1.5 text-sm cursor-pointer hover:bg-accent ${isActive ? "bg-accent" : ""}`}
-      onClick={handleClick}
-    >
-      {renaming ? (
-        <input
-          ref={inputRef}
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          onBlur={commitRename}
-          onKeyDown={handleKeyDown}
-          onClick={e => e.stopPropagation()}
-          className="flex-1 bg-transparent outline-none border-b border-primary text-sm"
-        />
-      ) : (
-        <span className="flex-1 truncate">{conversation.title}</span>
-      )}
-      <AlertDialog>
+    <>
+      <div
+        className={`group flex items-center rounded-md px-2 py-1.5 text-sm cursor-pointer hover:bg-accent ${isActive ? "bg-accent" : ""}`}
+        onClick={handleClick}
+      >
+        {renaming ? (
+          <input
+            ref={inputRef}
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            onBlur={commitRename}
+            onKeyDown={handleKeyDown}
+            onClick={e => e.stopPropagation()}
+            className="flex-1 bg-transparent outline-none border-b border-primary text-sm"
+          />
+        ) : (
+          <span className="flex-1 truncate">{conversation.title}</span>
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -97,17 +102,20 @@ export function ConversationItem({ conversation, onNavigate }: Props) {
             <DropdownMenuItem onClick={e => { e.stopPropagation(); setRenaming(true) }}>
               <Pencil className="mr-2 h-3 w-3" /> Rename
             </DropdownMenuItem>
-            <AlertDialogTrigger asChild>
-              <DropdownMenuItem onClick={e => e.stopPropagation()}>
-                {conversation.archived ? (
-                  <><ArchiveRestore className="mr-2 h-3 w-3" /> Unarchive</>
-                ) : (
-                  <><Archive className="mr-2 h-3 w-3" /> Archive</>
-                )}
-              </DropdownMenuItem>
-            </AlertDialogTrigger>
+            <DropdownMenuItem
+              onClick={e => { e.stopPropagation(); setArchiveOpen(true) }}
+            >
+              {conversation.archived ? (
+                <><ArchiveRestore className="mr-2 h-3 w-3" /> Unarchive</>
+              ) : (
+                <><Archive className="mr-2 h-3 w-3" /> Archive</>
+              )}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      </div>
+
+      <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -129,6 +137,6 @@ export function ConversationItem({ conversation, onNavigate }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   )
 }
