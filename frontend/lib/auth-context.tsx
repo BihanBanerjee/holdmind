@@ -1,5 +1,6 @@
 "use client"
-import { createContext, useContext } from "react"
+import { createContext, useContext, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 
 interface AuthContextValue {
   token: string | null
@@ -7,16 +8,39 @@ interface AuthContextValue {
   logout: () => void
 }
 
-const AuthContext = createContext<AuthContextValue>({
-  token: null,
-  login: () => {},
-  logout: () => {},
-})
+const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  return <AuthContext.Provider value={{ token: null, login: () => {}, logout: () => {} }}>{children}</AuthContext.Provider>
+  const [token, setToken] = useState<string | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    setToken(localStorage.getItem("hm_token"))
+  }, [])
+
+  function login(t: string) {
+    localStorage.setItem("hm_token", t)
+    document.cookie = "hm_auth=1; path=/"
+    setToken(t)
+    router.push("/chat")
+  }
+
+  function logout() {
+    localStorage.removeItem("hm_token")
+    document.cookie = "hm_auth=; path=/; max-age=0"
+    setToken(null)
+    router.push("/login")
+  }
+
+  return (
+    <AuthContext.Provider value={{ token, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {
-  return useContext(AuthContext)
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider")
+  return ctx
 }
