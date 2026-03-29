@@ -239,3 +239,17 @@ def test_list_messages_other_user(client):
     resp = client.get(f"/api/conversations/{conv_id}/messages",
                       headers={"Authorization": f"Bearer {b_token}"})
     assert resp.status_code == 404
+
+def test_list_messages_order_ascending(auth_client, db):
+    from models.chat_message import ChatMessage
+    client, headers = auth_client
+    create = client.post("/api/conversations", json={"title": "Chat"}, headers=headers)
+    conv_id = create.json()["id"]
+    db.add(ChatMessage(conversation_id=conv_id, role="user", content="first message"))
+    db.add(ChatMessage(conversation_id=conv_id, role="user", content="second message"))
+    db.commit()
+    resp = client.get(f"/api/conversations/{conv_id}/messages", headers=headers)
+    assert resp.status_code == 200
+    items = resp.json()["items"]
+    assert items[0]["content"] == "first message"
+    assert items[1]["content"] == "second message"
