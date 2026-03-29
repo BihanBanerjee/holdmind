@@ -23,7 +23,7 @@ export function ConversationList({ onNavigate }: Props) {
     } else {
       setAccumulated(prev => [...prev, ...data.items])
     }
-  }, [data, offset])
+  }, [data]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function toggleArchived() {
     setArchived(a => !a)
