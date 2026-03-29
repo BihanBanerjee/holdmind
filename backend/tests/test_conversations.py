@@ -20,14 +20,14 @@ def test_list_conversations_empty(auth_client):
     client, headers = auth_client
     resp = client.get("/api/conversations", headers=headers)
     assert resp.status_code == 200
-    assert resp.json() == []
+    assert resp.json()["items"] == []
 
 def test_list_conversations_after_create(auth_client):
     client, headers = auth_client
     client.post("/api/conversations", json={"title": "Chat 1"}, headers=headers)
     client.post("/api/conversations", json={"title": "Chat 2"}, headers=headers)
     resp = client.get("/api/conversations", headers=headers)
-    assert len(resp.json()) == 2
+    assert len(resp.json()["items"]) == 2
 
 def test_get_conversation_with_messages(auth_client):
     client, headers = auth_client
@@ -43,7 +43,7 @@ def test_delete_conversation(auth_client):
     conv_id = create.json()["id"]
     client.delete(f"/api/conversations/{conv_id}", headers=headers)
     resp = client.get("/api/conversations", headers=headers)
-    assert resp.json() == []
+    assert resp.json()["items"] == []
 
 def test_cannot_access_another_users_conversation(client):
     # Create user A's conversation
@@ -59,3 +59,46 @@ def test_cannot_access_another_users_conversation(client):
     resp = client.get(f"/api/conversations/{conv_id}",
                       headers={"Authorization": f"Bearer {b_token}"})
     assert resp.status_code == 404
+
+
+def test_list_conversations_returns_paginated_shape(auth_client):
+    client, headers = auth_client
+    resp = client.get("/api/conversations", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "items" in data
+    assert "total" in data
+    assert "limit" in data
+    assert "offset" in data
+    assert data["items"] == []
+    assert data["total"] == 0
+
+
+def test_list_conversations_paginated(auth_client):
+    client, headers = auth_client
+    for i in range(5):
+        client.post("/api/conversations", json={"title": f"Chat {i}"}, headers=headers)
+    resp = client.get("/api/conversations?limit=3&offset=0", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 5
+    assert len(data["items"]) == 3
+    assert data["limit"] == 3
+    assert data["offset"] == 0
+
+
+def test_list_conversations_offset(auth_client):
+    client, headers = auth_client
+    for i in range(5):
+        client.post("/api/conversations", json={"title": f"Chat {i}"}, headers=headers)
+    resp = client.get("/api/conversations?limit=3&offset=3", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data["items"]) == 2
+
+
+def test_list_conversations_archived_filter(auth_client):
+    client, headers = auth_client
+    resp = client.get("/api/conversations?archived=true", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["items"] == []

@@ -1,5 +1,5 @@
 # holdmind/backend/routes/conversations.py
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from auth.dependencies import get_current_user
@@ -10,6 +10,8 @@ from schemas.conversation import (
     ConversationDetailResponse,
     ConversationResponse,
     MessageResponse,
+    PaginatedConversationResponse,
+    PatchConversationRequest,
 )
 from services.conversation_service import (
     create_conversation,
@@ -31,12 +33,16 @@ def create(
     return create_conversation(db, current_user.id, body.title)
 
 
-@router.get("", response_model=list[ConversationResponse])
+@router.get("", response_model=PaginatedConversationResponse)
 def list_all(
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    archived: bool = Query(False),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return list_conversations(db, current_user.id)
+    items, total = list_conversations(db, current_user.id, limit, offset, archived)
+    return PaginatedConversationResponse(items=items, total=total, limit=limit, offset=offset)
 
 
 @router.get("/{conversation_id}", response_model=ConversationDetailResponse)

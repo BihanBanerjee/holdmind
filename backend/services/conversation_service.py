@@ -13,13 +13,21 @@ def create_conversation(db: Session, user_id: str, title: str) -> Conversation:
     return conv
 
 
-def list_conversations(db: Session, user_id: str) -> list[Conversation]:
-    return (
+def list_conversations(
+    db: Session,
+    user_id: str,
+    limit: int = 20,
+    offset: int = 0,
+    archived: bool = False,
+) -> tuple[list[Conversation], int]:
+    query = (
         db.query(Conversation)
-        .filter(Conversation.user_id == user_id)
+        .filter(Conversation.user_id == user_id, Conversation.archived == archived)
         .order_by(Conversation.created_at.desc())
-        .all()
     )
+    total = query.count()
+    items = query.limit(limit).offset(offset).all()
+    return items, total
 
 
 def get_conversation(db: Session, conversation_id: str, user_id: str) -> Conversation | None:
