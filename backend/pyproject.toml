@@ -28,4 +28,4 @@ dev = [
 ]
 
 [tool.uv.sources]
-recollectx = { path = "../re-collect(mine)", editable = true }
+recollectx = { path = "../../re-collect(mine)", editable = true }
