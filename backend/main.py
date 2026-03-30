@@ -5,7 +5,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
-from database import create_tables
 from routes.auth import router as auth_router
 from routes.chat import router as chat_router
 from routes.conversations import router as conversations_router
@@ -15,7 +14,6 @@ from routes.settings import router as settings_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_tables()
     yield
 
 

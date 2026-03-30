@@ -18,8 +18,3 @@ def get_db():
         raise
     finally:
         db.close()
-
-
-def create_tables() -> None:
-    import models  # noqa: F401 — ensures all models are registered
-    Base.metadata.create_all(bind=engine)
