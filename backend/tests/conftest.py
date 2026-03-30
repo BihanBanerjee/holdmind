@@ -4,7 +4,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from database import Base, get_db
+from base import Base
+from database import get_db
 
 TEST_DB_URL = "sqlite:///./test_holdmind.db"
 test_engine = create_engine(TEST_DB_URL, connect_args={"check_same_thread": False})

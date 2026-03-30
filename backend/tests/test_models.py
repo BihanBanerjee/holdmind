@@ -2,7 +2,7 @@
 import pytest
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
-from database import Base
+from base import Base
 import models  # noqa
 
 
