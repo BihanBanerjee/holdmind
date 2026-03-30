@@ -5,6 +5,7 @@ description = "Memory-augmented AI chatbot backend with belief graph"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "alembic>=1.16.0",
     "bcrypt<5.0.0",
     "email-validator>=2.3.0",
     "fastapi>=0.135.2",
