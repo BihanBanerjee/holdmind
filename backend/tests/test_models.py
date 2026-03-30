@@ -40,3 +40,20 @@ def test_chat_message_has_conversation_fk(engine):
     fks = inspector.get_foreign_keys("chat_messages")
     fk_tables = {fk["referred_table"] for fk in fks}
     assert "conversations" in fk_tables
+
+
+def test_refresh_token_model(db):
+    from models.refresh_token import RefreshToken
+    import secrets, uuid
+    from datetime import datetime, timedelta, timezone
+    row = RefreshToken(
+        id=str(uuid.uuid4()),
+        token=secrets.token_hex(32),
+        user_id="user-123",
+        expires_at=datetime.now(timezone.utc) + timedelta(days=30),
+    )
+    db.add(row)
+    db.commit()
+    fetched = db.query(RefreshToken).filter(RefreshToken.token == row.token).first()
+    assert fetched is not None
+    assert fetched.user_id == "user-123"
