@@ -19,12 +19,15 @@ def list_conversations(
     limit: int = 20,
     offset: int = 0,
     archived: bool = False,
+    q: str | None = None,
 ) -> tuple[list[Conversation], int]:
     query = (
         db.query(Conversation)
         .filter(Conversation.user_id == user_id, Conversation.archived == archived)
         .order_by(Conversation.created_at.desc())
     )
+    if q:
+        query = query.filter(Conversation.title.ilike(f"%{q}%"))
     total = query.count()
     items = query.limit(limit).offset(offset).all()
     return items, total

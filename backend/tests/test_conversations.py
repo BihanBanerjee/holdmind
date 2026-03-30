@@ -253,3 +253,43 @@ def test_list_messages_order_ascending(auth_client, db):
     items = resp.json()["items"]
     assert items[0]["content"] == "first message"
     assert items[1]["content"] == "second message"
+
+
+def _auth_headers_search(client, email="search@test.com", password="pass123"):
+    resp = client.post("/api/auth/signup", json={"email": email, "password": password})
+    return {"Authorization": f"Bearer {resp.json()['access_token']}"}
+
+
+def test_list_conversations_search(client):
+    headers = _auth_headers_search(client)
+    client.post("/api/conversations", json={"title": "Alpha meeting notes"}, headers=headers)
+    client.post("/api/conversations", json={"title": "Beta planning"}, headers=headers)
+    client.post("/api/conversations", json={"title": "Alpha standup"}, headers=headers)
+
+    resp = client.get("/api/conversations?q=alpha", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 2
+    titles = {c["title"] for c in data["items"]}
+    assert "Alpha meeting notes" in titles
+    assert "Alpha standup" in titles
+    assert "Beta planning" not in titles
+
+
+def test_list_conversations_search_case_insensitive(client):
+    headers = _auth_headers_search(client, email="case@test.com")
+    client.post("/api/conversations", json={"title": "UPPERCASE TITLE"}, headers=headers)
+
+    resp = client.get("/api/conversations?q=uppercase", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 1
+
+
+def test_list_conversations_no_q_returns_all(client):
+    headers = _auth_headers_search(client, email="noq@test.com")
+    client.post("/api/conversations", json={"title": "One"}, headers=headers)
+    client.post("/api/conversations", json={"title": "Two"}, headers=headers)
+
+    resp = client.get("/api/conversations", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 2

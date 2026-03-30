@@ -46,10 +46,11 @@ def list_all(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     archived: bool = Query(False),
+    q: str | None = Query(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    items, total = list_conversations(db, current_user.id, limit, offset, archived)
+    items, total = list_conversations(db, current_user.id, limit, offset, archived, q)
     return PaginatedConversationResponse(items=items, total=total, limit=limit, offset=offset)
 
 
