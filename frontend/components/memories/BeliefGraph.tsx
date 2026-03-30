@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as d3 from "d3"
 import type { GraphData, GraphNode } from "@/hooks/useMemories"
 
@@ -19,6 +19,19 @@ function linkColor(relation: string): string {
 
 export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
   const svgRef = useRef<SVGSVGElement>(null)
+  const [dims, setDims] = useState({ width: 800, height: 600 })
+
+  useEffect(() => {
+    const el = svgRef.current
+    if (!el) return
+    const observer = new ResizeObserver(() => {
+      setDims({ width: el.clientWidth || 800, height: el.clientHeight || 600 })
+    })
+    observer.observe(el)
+    // Set initial dims
+    setDims({ width: el.clientWidth || 800, height: el.clientHeight || 600 })
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     const el = svgRef.current
@@ -27,8 +40,8 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
     const svg = d3.select(el)
     svg.selectAll("*").remove()
 
-    const width = el.clientWidth || 800
-    const height = el.clientHeight || 600
+    const width = dims.width
+    const height = dims.height
 
     const g = svg.append("g")
 
@@ -120,7 +133,7 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
     return () => {
       simulation.stop()
     }
-  }, [data, selectedId, onSelectNode])
+  }, [data, selectedId, onSelectNode, dims])
 
   return <svg ref={svgRef} className="w-full h-full" />
 }
