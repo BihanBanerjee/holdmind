@@ -5,7 +5,6 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
-from auth.jwt import create_access_token
 from models.refresh_token import RefreshToken
 
 _EXPIRE_DAYS = 30
@@ -26,7 +25,7 @@ def create_refresh_token(db: Session, user_id: str) -> RefreshToken:
     return row
 
 
-def rotate_refresh_token(db: Session, old_token_str: str) -> tuple[RefreshToken, str] | None:
+def rotate_refresh_token(db: Session, old_token_str: str) -> RefreshToken | None:
     row = db.query(RefreshToken).filter(RefreshToken.token == old_token_str).first()
     if row is None:
         return None
@@ -54,8 +53,7 @@ def rotate_refresh_token(db: Session, old_token_str: str) -> tuple[RefreshToken,
     db.commit()
     db.refresh(new_row)
 
-    new_jwt = create_access_token(user_id)
-    return new_row, new_jwt
+    return new_row
 
 
 def revoke_refresh_tokens(db: Session, user_id: str) -> None:

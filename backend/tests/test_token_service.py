@@ -41,13 +41,10 @@ def test_rotate_refresh_token_valid(db):
     original = create_refresh_token(db, user.id)
     old_token_str = original.token
 
-    result = rotate_refresh_token(db, old_token_str)
-    assert result is not None
-    new_row, new_jwt = result
-
+    new_row = rotate_refresh_token(db, old_token_str)
+    assert new_row is not None
     assert new_row.token != old_token_str
     assert new_row.user_id == user.id
-    assert isinstance(new_jwt, str) and len(new_jwt) > 20
 
     # Old row must be gone
     old = db.query(RefreshToken).filter(RefreshToken.token == old_token_str).first()
