@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner"
 import { useClaimDetail, useDeleteClaim } from "@/hooks/useMemories"
 import type { GraphNode } from "@/hooks/useMemories"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Props {
   claimId: string
@@ -43,7 +44,13 @@ export function ClaimDetail({ claimId, allNodes, onSelectNode, onClose }: Props)
       </div>
 
       {isLoading && (
-        <p className="p-4 text-sm text-muted-foreground">Loading…</p>
+        <div className="p-4 flex flex-col gap-3">
+          <Skeleton className="h-5 w-16 rounded-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-2 w-full mt-2" />
+          <Skeleton className="h-2 w-full" />
+        </div>
       )}
 
       {data && (
