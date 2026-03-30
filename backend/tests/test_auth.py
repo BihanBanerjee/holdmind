@@ -4,7 +4,7 @@ def test_signup_creates_user(client):
         "email": "test@example.com",
         "password": "password123"
     })
-    assert resp.status_code == 200
+    assert resp.status_code == 201
     data = resp.json()
     assert "access_token" in data
     assert data["user"]["email"] == "test@example.com"

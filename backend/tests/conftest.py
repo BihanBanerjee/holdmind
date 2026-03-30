@@ -6,10 +6,19 @@ from sqlalchemy.orm import sessionmaker
 
 from base import Base
 from database import get_db
+from limiter import limiter
 
 TEST_DB_URL = "sqlite:///./test_holdmind.db"
 test_engine = create_engine(TEST_DB_URL, connect_args={"check_same_thread": False})
 TestingSession = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+
+
+@pytest.fixture(autouse=True)
+def reset_limiter():
+    """Reset in-memory rate limit storage between tests."""
+    limiter._storage.reset()
+    yield
+    limiter._storage.reset()
 
 
 @pytest.fixture(autouse=True)
