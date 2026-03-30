@@ -1,9 +1,10 @@
 # holdmind/backend/routes/conversations.py
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
 from auth.dependencies import get_current_user
 from database import get_db
+from limiter import limiter
 from models.user import User
 from schemas.conversation import (
     ConversationCreate,
@@ -28,7 +29,9 @@ router = APIRouter(prefix="/api/conversations", tags=["conversations"])
 
 
 @router.post("", response_model=ConversationResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("60/minute")
 def create(
+    request: Request,
     body: ConversationCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -37,7 +40,9 @@ def create(
 
 
 @router.get("", response_model=PaginatedConversationResponse)
+@limiter.limit("60/minute")
 def list_all(
+    request: Request,
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     archived: bool = Query(False),
@@ -49,7 +54,9 @@ def list_all(
 
 
 @router.patch("/{conversation_id}", response_model=ConversationResponse)
+@limiter.limit("60/minute")
 def patch(
+    request: Request,
     conversation_id: str,
     body: PatchConversationRequest,
     current_user: User = Depends(get_current_user),
@@ -62,7 +69,9 @@ def patch(
 
 
 @router.get("/{conversation_id}", response_model=ConversationDetailResponse)
+@limiter.limit("60/minute")
 def get_one(
+    request: Request,
     conversation_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -77,7 +86,9 @@ def get_one(
 
 
 @router.get("/{conversation_id}/messages", response_model=PaginatedMessageResponse)
+@limiter.limit("60/minute")
 def list_messages_route(
+    request: Request,
     conversation_id: str,
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
@@ -93,7 +104,9 @@ def list_messages_route(
 
 
 @router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("60/minute")
 def delete(
+    request: Request,
     conversation_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),

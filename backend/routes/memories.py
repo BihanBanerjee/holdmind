@@ -1,7 +1,8 @@
 # holdmind/backend/routes/memories.py
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from auth.dependencies import get_current_user, require_api_key
+from limiter import limiter
 from memory.factory import get_user_store
 from models.user import User
 from schemas.memory import ClaimDetailResponse, GraphResponse
@@ -11,7 +12,9 @@ router = APIRouter(prefix="/api/memories", tags=["memories"])
 
 
 @router.get("", response_model=GraphResponse)
+@limiter.limit("60/minute")
 def graph(
+    request: Request,
     current_user: User = Depends(get_current_user),
     api_key: str = Depends(require_api_key),
 ):
@@ -23,7 +26,9 @@ def graph(
 
 
 @router.get("/{claim_id}", response_model=ClaimDetailResponse)
+@limiter.limit("60/minute")
 def get_one(
+    request: Request,
     claim_id: str,
     current_user: User = Depends(get_current_user),
     api_key: str = Depends(require_api_key),
@@ -39,7 +44,9 @@ def get_one(
 
 
 @router.delete("/{claim_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("60/minute")
 def delete(
+    request: Request,
     claim_id: str,
     current_user: User = Depends(get_current_user),
     api_key: str = Depends(require_api_key),
