@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useConversations, type Conversation } from "@/hooks/useConversations"
 import { ConversationItem } from "./ConversationItem"
 
@@ -50,7 +51,11 @@ export function ConversationList({ onNavigate }: Props) {
       </div>
 
       {isLoading && (
-        <p className="px-2 text-xs text-muted-foreground">Loading…</p>
+        <div className="flex flex-col gap-1 px-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-full" />
+          ))}
+        </div>
       )}
 
       {accumulated.map(conv => (
