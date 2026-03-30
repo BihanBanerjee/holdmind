@@ -29,6 +29,12 @@ export function ConversationList({ onNavigate }: Props) {
     }, 300)
   }
 
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
+
   const { data, isLoading, isFetching } = useConversations(archived, limit, offset, debouncedQuery)
 
   // Append new page results to accumulated list
