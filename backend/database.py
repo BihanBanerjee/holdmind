@@ -1,11 +1,8 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session, DeclarativeBase
+from sqlalchemy.orm import sessionmaker, Session
 
+from base import Base  # noqa: F401 — re-exported for convenience
 from config import settings
-
-
-class Base(DeclarativeBase):
-    pass
 
 
 engine = create_engine(settings.database_url, pool_pre_ping=True)

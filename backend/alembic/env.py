@@ -8,14 +8,19 @@ from alembic import context
 # Make backend/ importable (env.py lives in backend/alembic/)
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config import settings
-from database import Base
 import models  # noqa: F401 — registers User, Conversation, ChatMessage with Base.metadata
+from base import Base
 
 config = context.config
 
-# Inject DATABASE_URL from app settings (no hardcoded URL in alembic.ini)
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# Read DATABASE_URL directly from environment — does not require full app config
+database_url = os.environ.get("DATABASE_URL")
+if not database_url:
+    raise RuntimeError(
+        "DATABASE_URL environment variable is not set. "
+        "Set it in backend/.env or export it before running alembic."
+    )
+config.set_main_option("sqlalchemy.url", database_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
