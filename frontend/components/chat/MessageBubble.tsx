@@ -9,7 +9,8 @@ export function MessageBubble({ role, content, highlight }: Props) {
 
   function renderContent() {
     if (!highlight) return content
-    const parts = content.split(new RegExp(`(${highlight})`, "gi"))
+    const escaped = highlight.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    const parts = content.split(new RegExp(`(${escaped})`, "gi"))
     return parts.map((part, i) =>
       part.toLowerCase() === highlight.toLowerCase() ? (
         <mark key={i} className="bg-yellow-300 text-black rounded px-0.5">{part}</mark>

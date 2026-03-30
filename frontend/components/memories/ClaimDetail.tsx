@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
 import { useClaimDetail, useDeleteClaim } from "@/hooks/useMemories"
 import type { GraphNode } from "@/hooks/useMemories"
 
@@ -152,7 +153,12 @@ export function ClaimDetail({ claimId, allNodes, onSelectNode, onClose }: Props)
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={() => { deleteClaim(claimId); onClose() }}
+                    onClick={() => {
+                      deleteClaim(claimId, {
+                        onSuccess: () => onClose(),
+                        onError: () => toast.error("Failed to delete memory"),
+                      })
+                    }}
                   >
                     Delete
                   </AlertDialogAction>

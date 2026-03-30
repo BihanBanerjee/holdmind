@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { CheckCircle, KeyRound } from "lucide-react"
+import { toast } from "sonner"
 import { apiFetch } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -51,6 +52,7 @@ export default function SettingsPage() {
   const { mutate: deleteKey } = useMutation({
     mutationFn: () => apiFetch<void>("/api/settings/api-key", { method: "DELETE" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["settings"] }),
+    onError: (err: Error) => toast.error(err.message),
   })
 
   return (
