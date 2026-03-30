@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useMessages, type Message } from "@/hooks/useMessages"
 import { MessageBubble } from "./MessageBubble"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Props {
   conversationId: string
@@ -85,7 +86,11 @@ export function MessageList({ conversationId, streamingContent, searchQuery }: P
       )}
 
       {isLoading && messages.length === 0 && (
-        <p className="text-center text-sm text-muted-foreground">Loading…</p>
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-12 w-2/3 rounded-2xl" />
+          <Skeleton className="h-10 w-1/2 rounded-2xl ml-auto" />
+          <Skeleton className="h-14 w-2/3 rounded-2xl" />
+        </div>
       )}
 
       {messages.map(msg => (
