@@ -35,3 +35,20 @@ def test_me_returns_current_user(client):
 def test_me_without_token_fails(client):
     resp = client.get("/api/auth/me")
     assert resp.status_code == 401
+
+
+def test_signup_sets_refresh_cookie(client):
+    resp = client.post("/api/auth/signup", json={
+        "email": "cookie@example.com",
+        "password": "password123",
+    })
+    assert resp.status_code == 201
+    assert "hm_refresh" in resp.cookies
+    assert len(resp.cookies["hm_refresh"]) == 64  # secrets.token_hex(32)
+
+
+def test_signin_sets_refresh_cookie(client):
+    client.post("/api/auth/signup", json={"email": "c@b.com", "password": "pass123"})
+    resp = client.post("/api/auth/signin", json={"email": "c@b.com", "password": "pass123"})
+    assert resp.status_code == 200
+    assert "hm_refresh" in resp.cookies

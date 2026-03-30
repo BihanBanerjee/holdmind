@@ -14,6 +14,7 @@ from routes.chat import router as chat_router
 from routes.conversations import router as conversations_router
 from routes.memories import router as memories_router
 from routes.settings import router as settings_router
+from routes.token import router as token_router
 
 
 @asynccontextmanager
@@ -37,6 +38,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(token_router)
 app.include_router(conversations_router)
 app.include_router(chat_router)
 app.include_router(memories_router)
