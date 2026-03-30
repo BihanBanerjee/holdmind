@@ -14,7 +14,7 @@ def _get_rate_limit_key(request: Request) -> str:
             return f"user:{payload['sub']}"
         except Exception:
             pass
-    return request.client.host
+    return request.client.host if request.client else "unknown"
 
 
 limiter = Limiter(key_func=_get_rate_limit_key)
