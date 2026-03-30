@@ -255,13 +255,14 @@ def test_list_messages_order_ascending(auth_client, db):
     assert items[1]["content"] == "second message"
 
 
-def _auth_headers_search(client, email="search@test.com", password="pass123"):
-    resp = client.post("/api/auth/signup", json={"email": email, "password": password})
+def _auth_headers(client, email="search@test.com", password="pass123"):
+    client.post("/api/auth/signup", json={"email": email, "password": password})
+    resp = client.post("/api/auth/signin", json={"email": email, "password": password})
     return {"Authorization": f"Bearer {resp.json()['access_token']}"}
 
 
 def test_list_conversations_search(client):
-    headers = _auth_headers_search(client)
+    headers = _auth_headers(client)
     client.post("/api/conversations", json={"title": "Alpha meeting notes"}, headers=headers)
     client.post("/api/conversations", json={"title": "Beta planning"}, headers=headers)
     client.post("/api/conversations", json={"title": "Alpha standup"}, headers=headers)
@@ -277,7 +278,7 @@ def test_list_conversations_search(client):
 
 
 def test_list_conversations_search_case_insensitive(client):
-    headers = _auth_headers_search(client, email="case@test.com")
+    headers = _auth_headers(client, email="case@test.com")
     client.post("/api/conversations", json={"title": "UPPERCASE TITLE"}, headers=headers)
 
     resp = client.get("/api/conversations?q=uppercase", headers=headers)
@@ -286,7 +287,7 @@ def test_list_conversations_search_case_insensitive(client):
 
 
 def test_list_conversations_no_q_returns_all(client):
-    headers = _auth_headers_search(client, email="noq@test.com")
+    headers = _auth_headers(client, email="noq@test.com")
     client.post("/api/conversations", json={"title": "One"}, headers=headers)
     client.post("/api/conversations", json={"title": "Two"}, headers=headers)
 
