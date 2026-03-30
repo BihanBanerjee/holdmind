@@ -1,11 +1,12 @@
 "use client"
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { apiFetch } from "./api"
 
 interface AuthContextValue {
   token: string | null
   login: (token: string) => void
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -26,7 +27,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push("/chat")
   }
 
-  function logout() {
+  async function logout() {
+    try {
+      await apiFetch("/api/auth/logout", { method: "POST" })
+    } catch {
+      // best-effort — clear local state regardless
+    }
     localStorage.removeItem("hm_token")
     const secure = location.protocol === "https:" ? "; Secure" : ""
     document.cookie = `hm_auth=; path=/; max-age=0; SameSite=Strict${secure}`
