@@ -1,7 +1,7 @@
 # holdmind/backend/main.py
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -44,5 +44,6 @@ app.include_router(settings_router)
 
 
 @app.get("/health")
-def health():
+@limiter.limit("200/minute")
+def health(request: Request):
     return {"status": "ok"}

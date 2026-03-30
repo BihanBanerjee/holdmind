@@ -1,6 +1,10 @@
 # holdmind/backend/limiter.py
+import logging
+
 from fastapi import Request
 from slowapi import Limiter
+
+_logger = logging.getLogger(__name__)
 
 
 def _get_rate_limit_key(request: Request) -> str:
@@ -12,8 +16,8 @@ def _get_rate_limit_key(request: Request) -> str:
             from auth.jwt import decode_token
             payload = decode_token(token)
             return f"user:{payload['sub']}"
-        except Exception:
-            pass
+        except Exception as e:
+            _logger.debug("Rate limit key fallback to IP (token decode failed: %s)", e)
     return request.client.host if request.client else "unknown"
 
 
