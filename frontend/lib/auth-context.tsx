@@ -22,13 +22,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setTokenRefreshedCallback((newToken) => {
       setToken(newToken)
+      _setAuthCookie(newToken)
     })
   }, [])
 
+  function _setAuthCookie(t: string) {
+    const secure = location.protocol === "https:" ? "; Secure" : ""
+    document.cookie = `hm_auth=${t}; path=/; SameSite=Strict${secure}`
+  }
+
   function login(t: string) {
     localStorage.setItem("hm_token", t)
-    const secure = location.protocol === "https:" ? "; Secure" : ""
-    document.cookie = `hm_auth=1; path=/; SameSite=Strict${secure}`
+    _setAuthCookie(t)
     setToken(t)
     router.push("/chat")
   }
