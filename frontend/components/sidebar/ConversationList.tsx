@@ -51,6 +51,9 @@ export function ConversationList({ onNavigate }: Props) {
     setArchived(a => !a)
     setOffset(0)
     setAccumulated([])
+    setQuery("")
+    setDebouncedQuery("")
+    if (debounceRef.current) clearTimeout(debounceRef.current)
   }
 
   const hasMore = data ? data.total > offset + limit : false
