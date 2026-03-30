@@ -61,7 +61,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <Button
           variant="ghost"
           className="justify-start text-destructive hover:text-destructive"
-          onClick={logout}
+          onClick={() => { logout() }}
         >
           <LogOut className="mr-2 h-4 w-4" /> Logout
         </Button>

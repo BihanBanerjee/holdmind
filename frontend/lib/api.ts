@@ -1,5 +1,13 @@
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? ""
 
+let _refreshPromise: Promise<boolean> | null = null
+
+let _onTokenRefreshed: ((token: string) => void) | null = null
+
+export function setTokenRefreshedCallback(cb: (token: string) => void): void {
+  _onTokenRefreshed = cb
+}
+
 export async function apiFetch<T = void>(
   path: string,
   options: RequestInit = {},
@@ -47,7 +55,7 @@ function _doFetch(path: string, options: RequestInit): Promise<Response> {
   })
 }
 
-async function _tryRefresh(): Promise<boolean> {
+async function _doRefresh(): Promise<boolean> {
   try {
     const res = await fetch(`${BASE}/api/auth/refresh`, {
       method: "POST",
@@ -55,11 +63,22 @@ async function _tryRefresh(): Promise<boolean> {
     })
     if (!res.ok) return false
     const data = await res.json()
+    const token = data?.access_token
+    if (!token || typeof token !== "string") return false
     if (typeof window !== "undefined") {
-      localStorage.setItem("hm_token", data.access_token)
+      localStorage.setItem("hm_token", token)
+      _onTokenRefreshed?.(token)
     }
     return true
   } catch {
     return false
   }
+}
+
+function _tryRefresh(): Promise<boolean> {
+  if (_refreshPromise) return _refreshPromise
+  _refreshPromise = _doRefresh().finally(() => {
+    _refreshPromise = null
+  })
+  return _refreshPromise
 }

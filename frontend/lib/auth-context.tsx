@@ -1,7 +1,7 @@
 "use client"
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { apiFetch } from "./api"
+import { apiFetch, setTokenRefreshedCallback } from "./api"
 
 interface AuthContextValue {
   token: string | null
@@ -17,6 +17,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setToken(localStorage.getItem("hm_token"))
+  }, [])
+
+  useEffect(() => {
+    setTokenRefreshedCallback((newToken) => {
+      setToken(newToken)
+    })
   }, [])
 
   function login(t: string) {
