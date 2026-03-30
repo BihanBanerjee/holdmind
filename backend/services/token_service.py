@@ -7,12 +7,12 @@ from sqlalchemy.orm import Session
 
 from models.refresh_token import RefreshToken
 
-_EXPIRE_DAYS = 30
+_REFRESH_TOKEN_EXPIRE_DAYS = 30
 
 
 def create_refresh_token(db: Session, user_id: str) -> RefreshToken:
     token_str = secrets.token_hex(32)
-    expires_at = datetime.now(timezone.utc) + timedelta(days=_EXPIRE_DAYS)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=_REFRESH_TOKEN_EXPIRE_DAYS)
     row = RefreshToken(
         id=str(uuid.uuid4()),
         token=token_str,
@@ -39,10 +39,9 @@ def rotate_refresh_token(db: Session, old_token_str: str) -> RefreshToken | None
 
     user_id = row.user_id
     db.delete(row)
-    db.flush()
 
     new_token_str = secrets.token_hex(32)
-    new_expires = now + timedelta(days=_EXPIRE_DAYS)
+    new_expires = now + timedelta(days=_REFRESH_TOKEN_EXPIRE_DAYS)
     new_row = RefreshToken(
         id=str(uuid.uuid4()),
         token=new_token_str,
