@@ -15,13 +15,17 @@ export interface PaginatedConversations {
   offset: number
 }
 
-export function useConversations(archived = false, limit = 20, offset = 0) {
+export function useConversations(archived = false, limit = 20, offset = 0, q = "") {
   return useQuery({
-    queryKey: ["conversations", { archived, limit, offset }],
-    queryFn: () =>
-      apiFetch<PaginatedConversations>(
-        `/api/conversations?limit=${limit}&offset=${offset}&archived=${archived}`,
-      ),
+    queryKey: ["conversations", { archived, limit, offset, q }],
+    queryFn: () => {
+      const url = new URL("/api/conversations", "http://n")
+      url.searchParams.set("limit", String(limit))
+      url.searchParams.set("offset", String(offset))
+      url.searchParams.set("archived", String(archived))
+      if (q) url.searchParams.set("q", q)
+      return apiFetch<PaginatedConversations>(url.pathname + url.search)
+    },
   })
 }
 

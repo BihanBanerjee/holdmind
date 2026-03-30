@@ -1,6 +1,7 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useConversations, type Conversation } from "@/hooks/useConversations"
 import { ConversationItem } from "./ConversationItem"
@@ -14,7 +15,21 @@ export function ConversationList({ onNavigate }: Props) {
   const [offset, setOffset] = useState(0)
   const [accumulated, setAccumulated] = useState<Conversation[]>([])
   const limit = 20
-  const { data, isLoading, isFetching } = useConversations(archived, limit, offset)
+  const [query, setQuery] = useState("")
+  const [debouncedQuery, setDebouncedQuery] = useState("")
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function handleSearchChange(value: string) {
+    setQuery(value)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQuery(value)
+      setOffset(0)
+      setAccumulated([])
+    }, 300)
+  }
+
+  const { data, isLoading, isFetching } = useConversations(archived, limit, offset, debouncedQuery)
 
   // Append new page results to accumulated list
   useEffect(() => {
@@ -50,6 +65,15 @@ export function ConversationList({ onNavigate }: Props) {
         </Button>
       </div>
 
+      <div className="px-2 pb-1">
+        <Input
+          value={query}
+          onChange={e => handleSearchChange(e.target.value)}
+          placeholder="Search conversations…"
+          className="h-7 text-xs"
+        />
+      </div>
+
       {isLoading && (
         <div className="flex flex-col gap-1 px-2">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -80,7 +104,11 @@ export function ConversationList({ onNavigate }: Props) {
 
       {accumulated.length === 0 && !isLoading && (
         <p className="px-2 text-xs text-muted-foreground">
-          {archived ? "No archived conversations." : "No conversations yet."}
+          {debouncedQuery
+            ? "No conversations match your search."
+            : archived
+            ? "No archived conversations."
+            : "No conversations yet."}
         </p>
       )}
     </div>
