@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Copy, Check, ThumbsUp, ThumbsDown, RefreshCw } from "lucide-react"
 
 interface Props {
@@ -15,6 +15,11 @@ export function MessageBubble({ role, content, highlight, isLast, onRegenerate }
   const [copied, setCopied] = useState(false)
   const [thumbUp, setThumbUp] = useState(false)
   const [thumbDown, setThumbDown] = useState(false)
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => { if (copyTimerRef.current) clearTimeout(copyTimerRef.current) }
+  }, [])
 
   function renderContent() {
     if (!highlight) return content
@@ -28,9 +33,13 @@ export function MessageBubble({ role, content, highlight, isLast, onRegenerate }
   }
 
   async function handleCopy() {
-    await navigator.clipboard.writeText(content)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    try {
+      await navigator.clipboard.writeText(content)
+      setCopied(true)
+      copyTimerRef.current = setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // clipboard write failed (e.g. page not focused) — do nothing
+    }
   }
 
   function handleThumbUp() {
@@ -66,6 +75,7 @@ export function MessageBubble({ role, content, highlight, isLast, onRegenerate }
           </button>
           <button
             aria-label="Thumbs up"
+            aria-pressed={thumbUp}
             data-active={thumbUp}
             onClick={handleThumbUp}
             className={`p-1 rounded transition-colors ${thumbUp ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
@@ -74,6 +84,7 @@ export function MessageBubble({ role, content, highlight, isLast, onRegenerate }
           </button>
           <button
             aria-label="Thumbs down"
+            aria-pressed={thumbDown}
             data-active={thumbDown}
             onClick={handleThumbDown}
             className={`p-1 rounded transition-colors ${thumbDown ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}

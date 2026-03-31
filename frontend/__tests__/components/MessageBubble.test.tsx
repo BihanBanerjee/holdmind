@@ -102,4 +102,26 @@ describe("MessageBubble — action bar", () => {
     await user.click(btn)
     expect(btn).toHaveAttribute("data-active", "false")
   })
+
+  it("does not set copied state when clipboard write fails", async () => {
+    const user = userEvent.setup()
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValueOnce(new Error("denied"))
+    render(<MessageBubble role="assistant" content="Hello" />)
+    await user.click(screen.getByRole("button", { name: /copy/i }))
+    // Check icon should NOT appear — button still shows Copy icon
+    expect(screen.queryByRole("button", { name: /copy/i })).toBeInTheDocument()
+  })
+
+  it("clicking thumbs down clears thumbs up and vice versa", async () => {
+    const user = userEvent.setup()
+    render(<MessageBubble role="assistant" content="Hi" />)
+    const upBtn = screen.getByRole("button", { name: /thumbs up/i })
+    const downBtn = screen.getByRole("button", { name: /thumbs down/i })
+    await user.click(upBtn)
+    expect(upBtn).toHaveAttribute("data-active", "true")
+    expect(downBtn).toHaveAttribute("data-active", "false")
+    await user.click(downBtn)
+    expect(downBtn).toHaveAttribute("data-active", "true")
+    expect(upBtn).toHaveAttribute("data-active", "false")
+  })
 })
