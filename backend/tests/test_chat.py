@@ -52,3 +52,43 @@ def test_chat_streams_sse(client, db):
     assert "text/event-stream" in resp.headers["content-type"]
     lines = [l for l in resp.text.split("\n") if l.startswith("data:")]
     assert len(lines) >= 2
+
+
+def test_chat_missing_conversation(client):
+    from main import app
+    from auth.dependencies import require_api_key
+
+    resp = client.post("/api/auth/signup", json={"email": "u2@test.com", "password": "pass123"})
+    token = resp.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    app.dependency_overrides[require_api_key] = lambda: "sk-or-test"
+    try:
+        resp = client.post(
+            "/api/conversations/nonexistent-conv-id/chat",
+            json={"message": "hello"},
+            headers=headers,
+        )
+    finally:
+        app.dependency_overrides.pop(require_api_key, None)
+
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == "Conversation not found"
+
+
+def test_chat_no_api_key(client):
+    resp = client.post("/api/auth/signup", json={"email": "u3@test.com", "password": "pass123"})
+    token = resp.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    conv = client.post("/api/conversations", json={"title": "Test"}, headers=headers)
+    conv_id = conv.json()["id"]
+
+    # No dependency override — require_api_key runs for real, user has no API key
+    resp = client.post(
+        f"/api/conversations/{conv_id}/chat",
+        json={"message": "hello"},
+        headers=headers,
+    )
+    assert resp.status_code == 403
+    assert "OpenRouter API key required" in resp.json()["detail"]
