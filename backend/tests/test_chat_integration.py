@@ -64,7 +64,7 @@ def test_chat_full_pipeline(client):
         resp = client.post(
             f"/api/conversations/{conv_id}/chat",
             json={
-                "message": "What is the capital of France?",
+                "message": "My name is Alex and I'm a software engineer who loves hiking on weekends.",
                 "model": "meta-llama/llama-3.1-8b-instruct",
             },
             headers=headers,

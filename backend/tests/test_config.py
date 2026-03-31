@@ -8,6 +8,7 @@ def test_settings_loads_env_vars(monkeypatch):
     monkeypatch.setenv("DATABASE_URL", "sqlite:///./test.db")
     monkeypatch.setenv("QDRANT_URL", "http://localhost:6333")
     monkeypatch.setenv("QDRANT_API_KEY", "test-key")
+    monkeypatch.setenv("MEMORY_DB_DIR", "/data/memories")
 
     from config import get_settings
     get_settings.cache_clear()
