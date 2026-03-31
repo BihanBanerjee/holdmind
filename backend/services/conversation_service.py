@@ -117,10 +117,13 @@ def auto_title_conversation(
         return
     msg_count = (
         db.query(ChatMessage)
-        .filter(ChatMessage.conversation_id == conversation_id)
+        .filter(
+            ChatMessage.conversation_id == conversation_id,
+            ChatMessage.role == "user",
+        )
         .count()
     )
-    if msg_count != 2:  # exactly user + assistant after first exchange
+    if msg_count != 1:  # exactly 1 user message after first exchange
         return
-    conv.title = first_message[:50].strip()
+    conv.title = first_message.strip()[:50]
     db.commit()

@@ -59,11 +59,14 @@ def chat(
                     api_key=api_key,
                     store=store,
                 )
-                save_messages(db, conversation_id, body.message, full_response)
-                auto_title_conversation(db, conversation_id, current_user.id, body.message)
             except Exception as post_err:
                 claims = []
                 _logger.error("Post-stream processing failed: %s", post_err)
+            try:
+                save_messages(db, conversation_id, body.message, full_response)
+                auto_title_conversation(db, conversation_id, current_user.id, body.message)
+            except Exception as save_err:
+                _logger.error("Failed to save messages or auto-title: %s", save_err)
             yield f"data: {json.dumps({'type': 'claims', 'data': claims})}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as e:

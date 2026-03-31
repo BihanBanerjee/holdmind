@@ -25,14 +25,14 @@ def make_db(conv_title="New Chat", message_count=2):
 
 
 def test_auto_title_sets_title_on_first_exchange():
-    db, conv = make_db(conv_title="New Chat", message_count=2)
+    db, conv = make_db(conv_title="New Chat", message_count=1)
     auto_title_conversation(db, "c1", "u1", "My name is Alex and I love hiking")
     assert conv.title == "My name is Alex and I love hiking"
     db.commit.assert_called_once()
 
 
 def test_auto_title_truncates_to_50_chars():
-    db, conv = make_db(conv_title="New Chat", message_count=2)
+    db, conv = make_db(conv_title="New Chat", message_count=1)
     long_msg = "A" * 80
     auto_title_conversation(db, "c1", "u1", long_msg)
     assert conv.title == "A" * 50
