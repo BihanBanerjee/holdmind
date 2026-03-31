@@ -19,22 +19,32 @@ def claim_to_text(claim: Claim) -> str:
     return ""
 
 
-def build_system_prompt(relevant_claims: list[Claim]) -> str:
-    if not relevant_claims:
-        return (
+def build_system_prompt(relevant_claims: list[Claim], patterns: dict | None = None) -> str:
+    """Build the system prompt with optional memory context and user style patterns."""
+    if relevant_claims:
+        memory_lines = "\n".join(
+            f"- [{c.type}] {claim_to_text(c)}" for c in relevant_claims
+        )
+        base = (
+            "You are Holdmind, a helpful AI assistant with persistent memory.\n\n"
+            "You know the following about this user:\n"
+            f"{memory_lines}\n\n"
+            "Use this context naturally in your responses when relevant. "
+            "Do not mention that you have a memory system."
+        )
+    else:
+        base = (
             "You are Holdmind, a helpful AI assistant. "
             "You will store things the user tells you over time."
         )
-    memory_lines = "\n".join(
-        f"- [{c.type}] {claim_to_text(c)}" for c in relevant_claims
-    )
-    return (
-        "You are Holdmind, a helpful AI assistant with persistent memory.\n\n"
-        "You know the following about this user:\n"
-        f"{memory_lines}\n\n"
-        "Use this context naturally in your responses when relevant. "
-        "Do not mention that you have a memory system."
-    )
+
+    if patterns:
+        from services.pattern_service import format_patterns_for_prompt
+        style_hint = format_patterns_for_prompt(patterns)
+        if style_hint:
+            base += f"\n\n{style_hint}"
+
+    return base
 
 
 def stream_response(

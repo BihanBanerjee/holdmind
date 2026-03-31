@@ -145,3 +145,19 @@ def test_update_user_patterns_persists_json():
     data = json.loads(user.patterns_json)
     assert "message_length" in data
     db.commit.assert_called_once()
+
+
+from services.chat_service import build_system_prompt
+
+
+def test_build_system_prompt_includes_pattern_hint():
+    patterns = {"message_length": "concise", "technical_depth": "high", "tone": "neutral"}
+    result = build_system_prompt([], patterns)
+    assert "concise" in result
+    assert "technical" in result
+
+
+def test_build_system_prompt_no_patterns():
+    result = build_system_prompt([])
+    assert "Holdmind" in result
+    assert "Communication style" not in result

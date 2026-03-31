@@ -18,6 +18,7 @@ from services.chat_service import (
     stream_response,
 )
 from services.conversation_service import get_conversation, save_messages, auto_title_conversation
+from services.pattern_service import get_user_patterns, update_user_patterns
 
 _logger = logging.getLogger(__name__)
 
@@ -42,7 +43,8 @@ def chat(
         try:
             store = get_user_store(current_user.id, api_key)
             relevant = store.semantic_query(body.message, k=5, recency_bias=0.1)
-            system_prompt = build_system_prompt(relevant)
+            patterns = get_user_patterns(db, current_user.id)
+            system_prompt = build_system_prompt(relevant, patterns)
             messages = [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": body.message},
@@ -59,14 +61,12 @@ def chat(
                     api_key=api_key,
                     store=store,
                 )
+                save_messages(db, conversation_id, body.message, full_response)
+                auto_title_conversation(db, conversation_id, current_user.id, body.message)
+                update_user_patterns(db, current_user.id)
             except Exception as post_err:
                 claims = []
                 _logger.error("Post-stream processing failed: %s", post_err)
-            try:
-                save_messages(db, conversation_id, body.message, full_response)
-                auto_title_conversation(db, conversation_id, current_user.id, body.message)
-            except Exception as save_err:
-                _logger.error("Failed to save messages or auto-title: %s", save_err)
             yield f"data: {json.dumps({'type': 'claims', 'data': claims})}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as e:
