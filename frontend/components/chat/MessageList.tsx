@@ -8,10 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton"
 interface Props {
   conversationId: string
   streamingContent: string
+  pendingUserMessage?: string | null
   searchQuery?: string
+  onRegenerate?: (lastUserMessage: string) => void
 }
 
-export function MessageList({ conversationId, streamingContent, searchQuery }: Props) {
+export function MessageList({ conversationId, streamingContent, pendingUserMessage, searchQuery, onRegenerate }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const limit = 50
   // null = not yet initialized (waiting for first fetch to compute starting offset)
@@ -93,14 +95,32 @@ export function MessageList({ conversationId, streamingContent, searchQuery }: P
         </div>
       )}
 
-      {messages.map(msg => (
-        <MessageBubble
-          key={msg.id}
-          role={msg.role}
-          content={msg.content}
-          highlight={searchQuery}
-        />
-      ))}
+      {(() => {
+        const lastAssistantIdx = messages.reduce(
+          (last, msg, i) => (msg.role === "assistant" ? i : last),
+          -1,
+        )
+        const lastUserMsg = [...messages].reverse().find(m => m.role === "user")?.content
+
+        return messages.map((msg, i) => (
+          <MessageBubble
+            key={msg.id}
+            role={msg.role}
+            content={msg.content}
+            highlight={searchQuery}
+            isLast={i === lastAssistantIdx}
+            onRegenerate={
+              i === lastAssistantIdx && lastUserMsg && onRegenerate
+                ? () => onRegenerate(lastUserMsg)
+                : undefined
+            }
+          />
+        ))
+      })()}
+
+      {pendingUserMessage && (
+        <MessageBubble role="user" content={pendingUserMessage} />
+      )}
 
       {streamingContent && (
         <MessageBubble role="assistant" content={streamingContent} />

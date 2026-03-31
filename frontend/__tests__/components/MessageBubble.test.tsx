@@ -1,21 +1,22 @@
 // frontend/__tests__/components/MessageBubble.test.tsx
-import { describe, it, expect } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import { render, screen, fireEvent, act } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { MessageBubble } from "@/components/chat/MessageBubble"
 
 describe("MessageBubble", () => {
-  it("user message wrapper has justify-end class", () => {
+  it("user message wrapper has items-end class", () => {
     const { container } = render(
       <MessageBubble role="user" content="Hello" />,
     )
-    expect(container.firstChild).toHaveClass("justify-end")
+    expect(container.firstChild).toHaveClass("items-end")
   })
 
-  it("assistant message wrapper has justify-start class", () => {
+  it("assistant message wrapper has items-start class", () => {
     const { container } = render(
       <MessageBubble role="assistant" content="Hi" />,
     )
-    expect(container.firstChild).toHaveClass("justify-start")
+    expect(container.firstChild).toHaveClass("items-start")
   })
 
   it("renders plain text when no highlight prop is given", () => {
@@ -48,5 +49,57 @@ describe("MessageBubble", () => {
     )
     const marks = document.querySelectorAll("mark")
     expect(marks).toHaveLength(1)
+  })
+})
+
+describe("MessageBubble — action bar", () => {
+
+  it("shows copy button on assistant messages", () => {
+    render(<MessageBubble role="assistant" content="Hello" />)
+    expect(screen.getByRole("button", { name: /copy/i })).toBeInTheDocument()
+  })
+
+  it("does not show action buttons on user messages", () => {
+    render(<MessageBubble role="user" content="Hello" />)
+    expect(screen.queryByRole("button", { name: /copy/i })).not.toBeInTheDocument()
+  })
+
+  it("copies content to clipboard when copy is clicked", async () => {
+    const user = userEvent.setup()
+    // userEvent.setup() installs a clipboard stub on navigator.clipboard; spy on it after setup
+    const writeTextSpy = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue(undefined)
+    render(<MessageBubble role="assistant" content="Hello world" />)
+    await user.click(screen.getByRole("button", { name: /copy/i }))
+    expect(writeTextSpy).toHaveBeenCalledWith("Hello world")
+    vi.restoreAllMocks()
+  })
+
+  it("shows regenerate button only when isLast=true and onRegenerate is provided", () => {
+    const onRegenerate = vi.fn()
+    render(<MessageBubble role="assistant" content="Hi" isLast onRegenerate={onRegenerate} />)
+    expect(screen.getByRole("button", { name: /regenerate/i })).toBeInTheDocument()
+  })
+
+  it("does not show regenerate when isLast=false", () => {
+    render(<MessageBubble role="assistant" content="Hi" isLast={false} onRegenerate={vi.fn()} />)
+    expect(screen.queryByRole("button", { name: /regenerate/i })).not.toBeInTheDocument()
+  })
+
+  it("calls onRegenerate when regenerate is clicked", async () => {
+    const user = userEvent.setup()
+    const onRegenerate = vi.fn()
+    render(<MessageBubble role="assistant" content="Hi" isLast onRegenerate={onRegenerate} />)
+    await user.click(screen.getByRole("button", { name: /regenerate/i }))
+    expect(onRegenerate).toHaveBeenCalledOnce()
+  })
+
+  it("toggles thumbs up state on click", async () => {
+    const user = userEvent.setup()
+    render(<MessageBubble role="assistant" content="Hi" />)
+    const btn = screen.getByRole("button", { name: /thumbs up/i })
+    await user.click(btn)
+    expect(btn).toHaveAttribute("data-active", "true")
+    await user.click(btn)
+    expect(btn).toHaveAttribute("data-active", "false")
   })
 })

@@ -1,11 +1,20 @@
+"use client"
+import { useState } from "react"
+import { Copy, Check, ThumbsUp, ThumbsDown, RefreshCw } from "lucide-react"
+
 interface Props {
   role: "user" | "assistant"
   content: string
   highlight?: string
+  isLast?: boolean
+  onRegenerate?: () => void
 }
 
-export function MessageBubble({ role, content, highlight }: Props) {
+export function MessageBubble({ role, content, highlight, isLast, onRegenerate }: Props) {
   const isUser = role === "user"
+  const [copied, setCopied] = useState(false)
+  const [thumbUp, setThumbUp] = useState(false)
+  const [thumbDown, setThumbDown] = useState(false)
 
   function renderContent() {
     if (!highlight) return content
@@ -18,8 +27,24 @@ export function MessageBubble({ role, content, highlight }: Props) {
     )
   }
 
+  async function handleCopy() {
+    await navigator.clipboard.writeText(content)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  function handleThumbUp() {
+    setThumbUp(v => !v)
+    setThumbDown(false)
+  }
+
+  function handleThumbDown() {
+    setThumbDown(v => !v)
+    setThumbUp(false)
+  }
+
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-3`}>
+    <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} mb-3`}>
       <div
         className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap ${
           isUser
@@ -29,6 +54,43 @@ export function MessageBubble({ role, content, highlight }: Props) {
       >
         {renderContent()}
       </div>
+
+      {!isUser && (
+        <div className="flex gap-1 mt-1 px-1">
+          <button
+            aria-label="Copy"
+            onClick={handleCopy}
+            className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+          </button>
+          <button
+            aria-label="Thumbs up"
+            data-active={thumbUp}
+            onClick={handleThumbUp}
+            className={`p-1 rounded transition-colors ${thumbUp ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <ThumbsUp className="h-3 w-3" />
+          </button>
+          <button
+            aria-label="Thumbs down"
+            data-active={thumbDown}
+            onClick={handleThumbDown}
+            className={`p-1 rounded transition-colors ${thumbDown ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <ThumbsDown className="h-3 w-3" />
+          </button>
+          {isLast && onRegenerate && (
+            <button
+              aria-label="Regenerate"
+              onClick={onRegenerate}
+              className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <RefreshCw className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

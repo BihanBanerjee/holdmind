@@ -13,7 +13,7 @@ interface Props {
 
 export default function ChatPage({ params }: Props) {
   const { id } = use(params)
-  const { send, isStreaming, streamingContent, claims } = useChat(id)
+  const { send, isStreaming, streamingContent, claims, pendingUserMessage } = useChat(id)
   const [searchQuery, setSearchQuery] = useState<string | undefined>()
 
   return (
@@ -25,7 +25,9 @@ export default function ChatPage({ params }: Props) {
       <MessageList
         conversationId={id}
         streamingContent={isStreaming ? streamingContent : ""}
+        pendingUserMessage={pendingUserMessage}
         searchQuery={searchQuery}
+        onRegenerate={isStreaming ? undefined : send}
       />
       <ClaimsPanel claims={claims} />
       <ChatInput onSend={send} disabled={isStreaming} />
