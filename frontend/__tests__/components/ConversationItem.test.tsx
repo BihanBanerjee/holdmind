@@ -15,7 +15,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/hooks/useConversations", async (importOriginal) => {
   const original =
-    await importOriginal<typeof import("@/hooks/useConversations")>()
+    (await importOriginal()) as typeof import("@/hooks/useConversations")
   return {
     ...original,
     usePatchConversation: () => ({ mutate: mockPatch }),
