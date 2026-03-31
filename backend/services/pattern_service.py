@@ -33,7 +33,7 @@ def detect_patterns(db: Session, user_id: str, sample_size: int = 30) -> dict:
     Returns a dict with keys: message_length, technical_depth, tone.
     Returns empty dict if insufficient data (< 3 messages).
     """
-    user_conversation_ids = db.query(Conversation.id).filter(Conversation.user_id == user_id)
+    user_conversation_ids = db.query(Conversation.id).filter(Conversation.user_id == user_id).subquery()
     messages = (
         db.query(ChatMessage)
         .filter(ChatMessage.conversation_id.in_(user_conversation_ids))
@@ -69,13 +69,18 @@ def detect_patterns(db: Session, user_id: str, sample_size: int = 30) -> dict:
     else:
         technical_depth = "medium"
 
-    # Tone
-    all_words = set(" ".join(m.content.lower() for m in messages).split())
-    casual_hits = len(all_words & _CASUAL_WORDS)
-    formal_hits = len(all_words & _FORMAL_WORDS)
-    if casual_hits > formal_hits * 2:
+    # Tone — count messages that contain casual/formal words, not unique corpus words
+    casual_count = sum(
+        1 for m in messages
+        if any(cw in m.content.lower().split() for cw in _CASUAL_WORDS)
+    )
+    formal_count = sum(
+        1 for m in messages
+        if any(fw in m.content.lower().split() for fw in _FORMAL_WORDS)
+    )
+    if casual_count > formal_count * 2:
         tone = "casual"
-    elif formal_hits > casual_hits * 2:
+    elif formal_count > casual_count * 2:
         tone = "formal"
     else:
         tone = "neutral"
@@ -126,7 +131,11 @@ def update_user_patterns(db: Session, user_id: str) -> None:
     user = db.query(User).filter(User.id == user_id).first()
     if user:
         user.patterns_json = json.dumps(patterns)
-        db.commit()
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
 
 
 def get_user_patterns(db: Session, user_id: str) -> dict:

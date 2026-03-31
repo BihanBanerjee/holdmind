@@ -87,3 +87,61 @@ def test_format_patterns_for_prompt_all_fields():
 
 def test_format_patterns_empty_returns_empty_string():
     assert format_patterns_for_prompt({}) == ""
+
+
+def test_detect_formal_tone():
+    msgs = make_messages([
+        "I would appreciate your assistance regarding this matter.",
+        "Please could you clarify the process for submitting a request?",
+        "Therefore, I shall proceed with the proposed solution.",
+        "Furthermore, I would like to inquire about the timeline.",
+        "However, I appreciate your prompt response.",
+    ])
+    db = make_db_with_messages(msgs)
+    result = detect_patterns(db, "u1")
+    assert result["tone"] == "formal"
+
+
+def test_get_user_patterns_returns_empty_on_malformed_json():
+    db = MagicMock()
+    user = MagicMock()
+    user.patterns_json = "not valid json{{{"
+    db.query.return_value.filter.return_value.first.return_value = user
+    from services.pattern_service import get_user_patterns
+    result = get_user_patterns(db, "u1")
+    assert result == {}
+
+
+def test_get_user_patterns_returns_empty_when_no_user():
+    db = MagicMock()
+    db.query.return_value.filter.return_value.first.return_value = None
+    from services.pattern_service import get_user_patterns
+    result = get_user_patterns(db, "u1")
+    assert result == {}
+
+
+def test_update_user_patterns_persists_json():
+    msgs = make_messages(["Hi", "Yes", "Ok"] * 5)
+    db_detect = make_db_with_messages(msgs)
+    # For the user lookup after detect_patterns
+    user = MagicMock()
+    user.patterns_json = None
+    # db_detect is used for detect_patterns; we need to also handle the User query
+    # Make a separate mock that handles both query calls
+    db = MagicMock()
+    query_chain = (
+        db.query.return_value
+        .filter.return_value
+        .filter.return_value
+        .order_by.return_value
+        .limit.return_value
+    )
+    query_chain.all.return_value = msgs
+    db.query.return_value.filter.return_value.first.return_value = user
+    from services.pattern_service import update_user_patterns
+    update_user_patterns(db, "u1")
+    assert user.patterns_json is not None
+    import json
+    data = json.loads(user.patterns_json)
+    assert "message_length" in data
+    db.commit.assert_called_once()
