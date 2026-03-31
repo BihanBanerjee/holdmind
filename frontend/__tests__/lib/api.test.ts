@@ -8,6 +8,9 @@ async function loadApiFetch() {
 }
 
 describe("apiFetch", () => {
+  // IMPORTANT: in each test, call vi.stubGlobal("fetch", ...) BEFORE loadApiFetch().
+  // The dynamic import resolves against the global fetch, so the stub must exist first.
+
   beforeEach(() => {
     vi.resetModules()
     localStorage.clear()
@@ -18,57 +21,53 @@ describe("apiFetch", () => {
   })
 
   it("returns parsed JSON on 200", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        status: 200,
-        ok: true,
-        json: () => Promise.resolve({ id: "1" }),
-      }),
-    )
+    const fetchMock = vi.fn().mockResolvedValueOnce({
+      status: 200,
+      ok: true,
+      json: () => Promise.resolve({ id: "1" }),
+    })
+    vi.stubGlobal("fetch", fetchMock)
     const apiFetch = await loadApiFetch()
     const result = await apiFetch("/api/test")
     expect(result).toEqual({ id: "1" })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it("returns undefined on 204", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        status: 204,
-        ok: true,
-        json: () => Promise.resolve(null),
-      }),
-    )
+    const fetchMock = vi.fn().mockResolvedValueOnce({
+      status: 204,
+      ok: true,
+      json: () => Promise.resolve(null),
+    })
+    vi.stubGlobal("fetch", fetchMock)
     const apiFetch = await loadApiFetch()
     const result = await apiFetch("/api/test")
     expect(result).toBeUndefined()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it("throws error with detail field on non-ok response", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        status: 400,
-        ok: false,
-        json: () => Promise.resolve({ detail: "Bad Request" }),
-      }),
-    )
+    const fetchMock = vi.fn().mockResolvedValueOnce({
+      status: 400,
+      ok: false,
+      json: () => Promise.resolve({ detail: "Bad Request" }),
+    })
+    vi.stubGlobal("fetch", fetchMock)
     const apiFetch = await loadApiFetch()
     await expect(apiFetch("/api/test")).rejects.toThrow("Bad Request")
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it("throws generic HTTP error when response body has no detail", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        status: 500,
-        ok: false,
-        json: () => Promise.resolve({}),
-      }),
-    )
+    const fetchMock = vi.fn().mockResolvedValueOnce({
+      status: 500,
+      ok: false,
+      json: () => Promise.resolve({}),
+    })
+    vi.stubGlobal("fetch", fetchMock)
     const apiFetch = await loadApiFetch()
     await expect(apiFetch("/api/test")).rejects.toThrow("HTTP 500")
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it("refreshes token on 401 and retries the original request", async () => {
@@ -98,6 +97,9 @@ describe("apiFetch", () => {
 
   it("clears localStorage and throws Session expired when refresh fails", async () => {
     localStorage.setItem("hm_token", "old-token")
+    // Stub window.location so jsdom doesn't throw on href assignment
+    const location = { href: "" }
+    vi.stubGlobal("location", location)
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({ status: 401, ok: false, json: () => Promise.resolve({}) })
@@ -106,6 +108,7 @@ describe("apiFetch", () => {
     const apiFetch = await loadApiFetch()
     await expect(apiFetch("/api/test")).rejects.toThrow("Session expired")
     expect(localStorage.getItem("hm_token")).toBeNull()
+    expect(location.href).toBe("/login")
   })
 
   it("does not attempt refresh for /api/auth/refresh itself (avoids infinite loop)", async () => {
