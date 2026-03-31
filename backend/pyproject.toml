@@ -31,3 +31,6 @@ dev = [
 
 [tool.uv.sources]
 recollectx = { path = "../../re-collect(mine)", editable = true }
+
+[tool.pytest.ini_options]
+markers = ["integration: requires live OpenRouter + Qdrant (slow, has cost)"]
