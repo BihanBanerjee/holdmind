@@ -5,6 +5,7 @@ from openai import OpenAI
 from recollectx.claims import Claim, EpisodicClaim, SemanticClaim
 
 from memory.factory import get_extractor, get_updater, get_user_store
+from services.pattern_service import format_patterns_for_prompt
 
 _OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 _DEFAULT_CHAT_MODEL = "anthropic/claude-sonnet-4-5"
@@ -39,7 +40,6 @@ def build_system_prompt(relevant_claims: list[Claim], patterns: dict | None = No
         )
 
     if patterns:
-        from services.pattern_service import format_patterns_for_prompt
         style_hint = format_patterns_for_prompt(patterns)
         if style_hint:
             base += f"\n\n{style_hint}"

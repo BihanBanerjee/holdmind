@@ -63,10 +63,13 @@ def chat(
                 )
                 save_messages(db, conversation_id, body.message, full_response)
                 auto_title_conversation(db, conversation_id, current_user.id, body.message)
-                update_user_patterns(db, current_user.id)
             except Exception as post_err:
                 claims = []
                 _logger.error("Post-stream processing failed: %s", post_err)
+            try:
+                update_user_patterns(db, current_user.id)
+            except Exception as pattern_err:
+                _logger.warning("Pattern update failed (non-critical): %s", pattern_err)
             yield f"data: {json.dumps({'type': 'claims', 'data': claims})}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as e:
