@@ -17,7 +17,7 @@ from services.chat_service import (
     extract_and_store,
     stream_response,
 )
-from services.conversation_service import get_conversation, save_messages
+from services.conversation_service import get_conversation, save_messages, auto_title_conversation
 
 _logger = logging.getLogger(__name__)
 
@@ -60,6 +60,7 @@ def chat(
                     store=store,
                 )
                 save_messages(db, conversation_id, body.message, full_response)
+                auto_title_conversation(db, conversation_id, current_user.id, body.message)
             except Exception as post_err:
                 claims = []
                 _logger.error("Post-stream processing failed: %s", post_err)

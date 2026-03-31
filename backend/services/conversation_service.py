@@ -103,3 +103,24 @@ def save_messages(
     db.add(ChatMessage(conversation_id=conversation_id, role="user", content=user_content))
     db.add(ChatMessage(conversation_id=conversation_id, role="assistant", content=assistant_content))
     db.commit()
+
+
+def auto_title_conversation(
+    db: Session,
+    conversation_id: str,
+    user_id: str,
+    first_message: str,
+) -> None:
+    """Set the conversation title from the first user message if still default."""
+    conv = get_conversation(db, conversation_id, user_id)
+    if conv is None or conv.title != "New Chat":
+        return
+    msg_count = (
+        db.query(ChatMessage)
+        .filter(ChatMessage.conversation_id == conversation_id)
+        .count()
+    )
+    if msg_count != 2:  # exactly user + assistant after first exchange
+        return
+    conv.title = first_message[:50].strip()
+    db.commit()
