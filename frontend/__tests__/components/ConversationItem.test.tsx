@@ -7,6 +7,7 @@ import type { Conversation } from "@/hooks/useConversations"
 
 const mockPush = vi.fn()
 const mockPatch = vi.fn()
+const mockDelete = vi.fn()
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
@@ -19,6 +20,7 @@ vi.mock("@/hooks/useConversations", async (importOriginal) => {
   return {
     ...original,
     usePatchConversation: () => ({ mutate: mockPatch }),
+    useDeleteConversation: () => ({ mutate: mockDelete }),
   }
 })
 
@@ -111,6 +113,7 @@ describe("ConversationItem", () => {
   beforeEach(() => {
     mockPush.mockClear()
     mockPatch.mockClear()
+    mockDelete.mockClear()
   })
 
   it("renders the conversation title", () => {
@@ -177,7 +180,10 @@ describe("ConversationItem", () => {
     await user.click(screen.getByRole("button"))
     await user.click(await screen.findByText("Archive"))
     await user.click(await screen.findByText("Confirm"))
-    expect(mockPatch).toHaveBeenCalledWith({ id: "conv1", archived: true })
+    expect(mockPatch).toHaveBeenCalledWith(
+      { id: "conv1", archived: true },
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    )
   })
 
   it("shows Unarchive option for an archived conversation", async () => {
@@ -185,5 +191,25 @@ describe("ConversationItem", () => {
     render(<ConversationItem conversation={makeConversation({ archived: true })} />)
     await user.click(screen.getByRole("button"))
     expect(await screen.findByText("Unarchive")).toBeInTheDocument()
+  })
+
+  it("shows delete confirmation dialog when Delete is clicked", async () => {
+    const user = userEvent.setup()
+    render(<ConversationItem conversation={makeConversation()} />)
+    await user.click(screen.getByRole("button"))
+    await user.click(await screen.findByText("Delete"))
+    expect(await screen.findByText("Delete conversation?")).toBeInTheDocument()
+  })
+
+  it("calls delete mutation when dialog Confirm is clicked", async () => {
+    const user = userEvent.setup()
+    render(<ConversationItem conversation={makeConversation()} />)
+    await user.click(screen.getByRole("button"))
+    await user.click(await screen.findByText("Delete"))
+    await user.click(await screen.findByText("Delete forever"))
+    expect(mockDelete).toHaveBeenCalledWith(
+      "conv1",
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    )
   })
 })

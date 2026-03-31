@@ -1,7 +1,7 @@
 "use client"
 import { useState, useRef, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { MoreHorizontal, Pencil, Archive, ArchiveRestore } from "lucide-react"
+import { MoreHorizontal, Pencil, Archive, ArchiveRestore, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { Conversation } from "@/hooks/useConversations"
-import { usePatchConversation } from "@/hooks/useConversations"
+import { usePatchConversation, useDeleteConversation } from "@/hooks/useConversations"
 
 interface Props {
   conversation: Conversation
@@ -32,9 +32,11 @@ export function ConversationItem({ conversation, onNavigate }: Props) {
   const pathname = usePathname()
   const isActive = pathname === `/chat/${conversation.id}`
   const { mutate: patch } = usePatchConversation()
+  const { mutate: deleteConv } = useDeleteConversation()
   const [renaming, setRenaming] = useState(false)
   const [title, setTitle] = useState(conversation.title)
   const [archiveOpen, setArchiveOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Sync title when external prop changes (e.g. after successful rename PATCH)
@@ -111,6 +113,12 @@ export function ConversationItem({ conversation, onNavigate }: Props) {
                 <><Archive className="mr-2 h-3 w-3" /> Archive</>
               )}
             </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={e => { e.stopPropagation(); setDeleteOpen(true) }}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="mr-2 h-3 w-3" /> Delete
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -130,9 +138,35 @@ export function ConversationItem({ conversation, onNavigate }: Props) {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => patch({ id: conversation.id, archived: !conversation.archived })}
+              onClick={() => patch(
+                { id: conversation.id, archived: !conversation.archived },
+                { onSuccess: () => { if (isActive && !conversation.archived) router.push("/chat") } },
+              )}
             >
               Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the conversation and all its messages. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteConv(
+                conversation.id,
+                { onSuccess: () => { if (isActive) router.push("/chat") } },
+              )}
+            >
+              Delete forever
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
