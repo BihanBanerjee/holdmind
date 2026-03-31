@@ -163,7 +163,10 @@ export function ConversationItem({ conversation, onNavigate }: Props) {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteConv(
                 conversation.id,
-                { onSuccess: () => { if (isActive) router.push("/chat") } },
+                {
+                  onSuccess: () => { setDeleteOpen(false); if (isActive) router.push("/chat") },
+                  onError: () => setDeleteOpen(false),
+                },
               )}
             >
               Delete forever

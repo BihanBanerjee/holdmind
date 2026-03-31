@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { usePathname } from "next/navigation"
 import { ConversationItem } from "@/components/sidebar/ConversationItem"
 import type { Conversation } from "@/hooks/useConversations"
 
@@ -11,7 +12,7 @@ const mockDelete = vi.fn()
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
-  usePathname: () => "/chat/other-id",
+  usePathname: vi.fn(() => "/chat/other-id"),
 }))
 
 vi.mock("@/hooks/useConversations", async (importOriginal) => {
@@ -114,6 +115,7 @@ describe("ConversationItem", () => {
     mockPush.mockClear()
     mockPatch.mockClear()
     mockDelete.mockClear()
+    vi.mocked(usePathname).mockReturnValue("/chat/other-id")
   })
 
   it("renders the conversation title", () => {
@@ -211,5 +213,18 @@ describe("ConversationItem", () => {
       "conv1",
       expect.objectContaining({ onSuccess: expect.any(Function) }),
     )
+  })
+
+  it("calls router.push('/chat') on delete onSuccess when conversation is active", async () => {
+    vi.mocked(usePathname).mockReturnValue("/chat/conv1")
+    const user = userEvent.setup()
+    render(<ConversationItem conversation={makeConversation()} />)
+    await user.click(screen.getByRole("button"))
+    await user.click(await screen.findByText("Delete"))
+    await user.click(await screen.findByText("Delete forever"))
+    // Capture the onSuccess callback and invoke it
+    const [[, { onSuccess }]] = mockDelete.mock.calls
+    onSuccess()
+    expect(mockPush).toHaveBeenCalledWith("/chat")
   })
 })
