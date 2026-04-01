@@ -1,5 +1,5 @@
 "use client"
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import { useMemoryGraph } from "@/hooks/useMemories"
 import { BeliefGraph } from "@/components/memories/BeliefGraph"
 import { ClaimDetail } from "@/components/memories/ClaimDetail"
@@ -27,6 +27,12 @@ export default function MemoriesPage() {
     () => (data ? filterMemories(data, typeFilter, searchTerm) : null),
     [data, typeFilter, searchTerm],
   )
+
+  useEffect(() => {
+    if (selectedId && filteredData && !filteredData.nodes.some(n => n.id === selectedId)) {
+      setSelectedId(null)
+    }
+  }, [filteredData, selectedId])
 
   if (isLoading) {
     return (
@@ -88,7 +94,7 @@ export default function MemoriesPage() {
             </div>
           ) : (
             <BeliefGraph
-              data={filteredData ?? { nodes: [], links: [] }}
+              data={filteredData!}
               selectedId={selectedId}
               onSelectNode={handleSelectNode}
             />
