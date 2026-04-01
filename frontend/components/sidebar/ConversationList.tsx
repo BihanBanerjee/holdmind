@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useConversations, type Conversation } from "@/hooks/useConversations"
 import { ConversationItem } from "./ConversationItem"
+import { groupConversations } from "@/lib/groupConversations"
 
 interface Props {
   onNavigate?: () => void
@@ -37,7 +38,6 @@ export function ConversationList({ onNavigate }: Props) {
 
   const { data, isLoading, isFetching } = useConversations(archived, limit, offset, debouncedQuery)
 
-  // Append new page results to accumulated list
   useEffect(() => {
     if (!data) return
     if (offset === 0) {
@@ -91,13 +91,22 @@ export function ConversationList({ onNavigate }: Props) {
         </div>
       )}
 
-      {accumulated.map(conv => (
-        <ConversationItem
-          key={conv.id}
-          conversation={conv}
-          onNavigate={onNavigate}
-        />
-      ))}
+      {debouncedQuery ? (
+        accumulated.map(conv => (
+          <ConversationItem key={conv.id} conversation={conv} onNavigate={onNavigate} />
+        ))
+      ) : (
+        groupConversations(accumulated).map(group => (
+          <div key={group.label}>
+            <p className="px-2 pt-2 pb-0.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+              {group.label}
+            </p>
+            {group.items.map(conv => (
+              <ConversationItem key={conv.id} conversation={conv} onNavigate={onNavigate} />
+            ))}
+          </div>
+        ))
+      )}
 
       {hasMore && (
         <Button
