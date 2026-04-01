@@ -32,6 +32,10 @@ export default function SettingsPage() {
   const [saveError, setSaveError] = useState("")
   const [displayName, setDisplayName] = useState("")
   const [profileError, setProfileError] = useState("")
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [passwordError, setPasswordError] = useState("")
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
 
   const { data: status } = useQuery({
     queryKey: ["settings"],
@@ -75,6 +79,22 @@ export default function SettingsPage() {
       toast.success("Display name updated")
     },
     onError: (err: Error) => setProfileError(err.message),
+  })
+
+  const { mutate: changePassword, isPending: changingPassword } = useMutation({
+    mutationFn: ({ current, next }: { current: string; next: string }) =>
+      apiFetch<void>("/api/auth/change-password", {
+        method: "POST",
+        body: JSON.stringify({ current_password: current, new_password: next }),
+      }),
+    onSuccess: () => {
+      setCurrentPassword("")
+      setNewPassword("")
+      setPasswordError("")
+      setPasswordSuccess(true)
+      setTimeout(() => setPasswordSuccess(false), 3000)
+    },
+    onError: (err: Error) => setPasswordError(err.message),
   })
 
   useEffect(() => {
@@ -125,6 +145,56 @@ export default function SettingsPage() {
               className="self-start"
             >
               {savingProfile ? "Saving…" : "Save name"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <KeyRound className="h-5 w-5" />
+            Change Password
+          </CardTitle>
+          <CardDescription>
+            Enter your current password and a new password (min. 8 characters).
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form
+            onSubmit={e => {
+              e.preventDefault()
+              if (currentPassword && newPassword)
+                changePassword({ current: currentPassword, next: newPassword })
+            }}
+            className="flex flex-col gap-3"
+          >
+            <div className="space-y-1">
+              <Label htmlFor="currentpw">Current password</Label>
+              <Input
+                id="currentpw"
+                type="password"
+                value={currentPassword}
+                onChange={e => setCurrentPassword(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="newpw">New password</Label>
+              <Input
+                id="newpw"
+                type="password"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+              />
+            </div>
+            {passwordError && <p className="text-sm text-destructive">{passwordError}</p>}
+            {passwordSuccess && <p className="text-sm text-green-600">Password changed successfully.</p>}
+            <Button
+              type="submit"
+              disabled={changingPassword || !currentPassword || !newPassword}
+              className="self-start"
+            >
+              {changingPassword ? "Updating…" : "Update password"}
             </Button>
           </form>
         </CardContent>
