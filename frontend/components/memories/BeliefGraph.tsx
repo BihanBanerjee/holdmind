@@ -17,6 +17,16 @@ function linkColor(relation: string): string {
   return "#6b7280"
 }
 
+function nodeColor(node: SimNode): string {
+  const baseColor = node.type === "semantic" ? "#3b82f6" : "#a855f7"
+  const staleColor = "#94a3b8"
+  const nowSec = Date.now() / 1000
+  const ageDays = (nowSec - node.created_at) / 86400
+  // Full color within 7 days; fully stale at 60+ days
+  const t = Math.min(Math.max(ageDays / 60, 0), 1)
+  return d3.interpolateRgb(baseColor, staleColor)(t)
+}
+
 export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
   const svgRef = useRef<SVGSVGElement>(null)
   const [dims, setDims] = useState({ width: 800, height: 600 })
@@ -83,7 +93,7 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
       .data(nodes)
       .join("circle") as d3.Selection<SVGCircleElement, SimNode, SVGGElement, unknown>)
       .attr("r", d => 6 + d.importance * 12)
-      .attr("fill", d => d.type === "semantic" ? "#3b82f6" : "#a855f7")
+      .attr("fill", d => nodeColor(d))
       .attr("opacity", d => 0.4 + d.confidence * 0.6)
       .attr("stroke", d => d.id === selectedId ? "#ffffff" : "none")
       .attr("stroke-width", 2.5)

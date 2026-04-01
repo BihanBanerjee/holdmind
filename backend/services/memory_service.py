@@ -29,6 +29,7 @@ def build_graph_data(claims: list[Claim], edges: list[BeliefEdge]) -> dict:
             label=_claim_label(c),
             confidence=c.confidence,
             importance=c.importance,
+            created_at=c.created_at,
         )
         for c in claims
     ]

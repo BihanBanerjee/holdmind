@@ -8,6 +8,7 @@ class NodeResponse(BaseModel):
     label: str          # human-readable text
     confidence: float
     importance: float
+    created_at: float
 
 
 class LinkResponse(BaseModel):

@@ -7,6 +7,7 @@ export interface GraphNode {
   label: string
   confidence: number
   importance: number
+  created_at: number
 }
 
 export interface GraphLink {
