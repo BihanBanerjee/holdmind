@@ -63,6 +63,7 @@ def test_messages_endpoint_returns_claims_on_assistant(client, db):
     items = r.json()["items"]
     assistant = next(m for m in items if m["role"] == "assistant")
     assert assistant["claims"] is not None
+    assert len(assistant["claims"]) == 1
     assert assistant["claims"][0]["text"] == "visited Paris"
 
 

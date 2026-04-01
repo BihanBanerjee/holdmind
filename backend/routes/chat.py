@@ -61,10 +61,13 @@ def chat(
                     api_key=api_key,
                     store=store,
                 )
+            except Exception as extract_err:
+                claims = []
+                _logger.error("Claim extraction failed: %s", extract_err)
+            try:
                 save_messages(db, conversation_id, body.message, full_response, claims)
                 auto_title_conversation(db, conversation_id, current_user.id, body.message)
             except Exception as post_err:
-                claims = []
                 _logger.error("Post-stream processing failed: %s", post_err)
             try:
                 update_user_patterns(db, current_user.id)

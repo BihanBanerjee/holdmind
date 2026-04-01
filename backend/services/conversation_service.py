@@ -1,4 +1,6 @@
 # holdmind/backend/services/conversation_service.py
+import json
+
 from sqlalchemy.orm import Session
 
 from models.chat_message import ChatMessage
@@ -99,9 +101,8 @@ def save_messages(
     conversation_id: str,
     user_content: str,
     assistant_content: str,
-    claims: list | None = None,
+    claims: list[dict] | None = None,
 ) -> None:
-    import json
     db.add(ChatMessage(conversation_id=conversation_id, role="user", content=user_content))
     db.add(ChatMessage(
         conversation_id=conversation_id,
