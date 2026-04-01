@@ -104,3 +104,28 @@ def test_change_password_requires_auth(client):
         json={"current_password": "password123", "new_password": "newpass456"},
     )
     assert r.status_code == 401
+
+
+def test_delete_account_removes_user(client):
+    token = register_and_login(client)
+    r = client.delete(
+        "/api/auth/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert r.status_code == 204
+    # User can no longer sign in
+    r2 = client.post("/api/auth/signin", json={"email": "user@test.com", "password": "password123"})
+    assert r2.status_code == 401
+
+
+def test_delete_account_token_invalidated(client):
+    token = register_and_login(client)
+    client.delete("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+    # JWT is still structurally valid but user no longer exists — /me should 401
+    r = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 401
+
+
+def test_delete_account_requires_auth(client):
+    r = client.delete("/api/auth/me")
+    assert r.status_code == 401

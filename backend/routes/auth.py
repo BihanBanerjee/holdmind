@@ -1,12 +1,17 @@
 # holdmind/backend/routes/auth.py
+import os
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
 from auth.cookies import set_refresh_cookie
 from auth.dependencies import get_current_user
 from auth.jwt import create_access_token
+from config import settings as cfg
 from database import get_db
 from limiter import limiter
+from models.chat_message import ChatMessage
+from models.conversation import Conversation
+from models.refresh_token import RefreshToken
 from models.user import User
 from auth.password import hash_password, verify_password
 from schemas.auth import SigninRequest, SignupRequest, TokenResponse, UserResponse, UpdateProfileRequest, ChangePasswordRequest
@@ -82,4 +87,33 @@ def change_password(
             detail="Password must be at least 8 characters",
         )
     current_user.hashed_password = hash_password(body.new_password)
+    db.commit()
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("5/minute")
+def delete_account(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    user_id = current_user.id
+
+    # Delete per-user memory SQLite file (best-effort)
+    db_path = os.path.join(cfg.memory_db_dir, f"{user_id}.db")
+    try:
+        if os.path.exists(db_path):
+            os.remove(db_path)
+    except OSError:
+        pass
+
+    # Explicit cascade (SQLite does not enforce FK cascades by default)
+    db.query(ChatMessage).filter(
+        ChatMessage.conversation_id.in_(
+            db.query(Conversation.id).filter(Conversation.user_id == user_id).subquery()
+        )
+    ).delete(synchronize_session=False)
+    db.query(Conversation).filter(Conversation.user_id == user_id).delete(synchronize_session=False)
+    db.query(RefreshToken).filter(RefreshToken.user_id == user_id).delete(synchronize_session=False)
+    db.delete(current_user)
     db.commit()
