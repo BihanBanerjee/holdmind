@@ -28,6 +28,7 @@ interface ApiKeyStatus {
 
 export default function SettingsPage() {
   const qc = useQueryClient()
+  const { logout } = useAuth()
   const [apiKey, setApiKey] = useState("")
   const [saveError, setSaveError] = useState("")
   const [displayName, setDisplayName] = useState("")
@@ -95,6 +96,12 @@ export default function SettingsPage() {
       setTimeout(() => setPasswordSuccess(false), 3000)
     },
     onError: (err: Error) => setPasswordError(err.message),
+  })
+
+  const { mutate: deleteAccount, isPending: deletingAccount } = useMutation({
+    mutationFn: () => apiFetch<void>("/api/auth/me", { method: "DELETE" }),
+    onSuccess: () => logout(),
+    onError: (err: Error) => toast.error(err.message),
   })
 
   useEffect(() => {
@@ -273,6 +280,41 @@ export default function SettingsPage() {
               {saving ? "Saving…" : "Save key"}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-8 border-destructive">
+        <CardHeader>
+          <CardTitle className="text-destructive">Danger Zone</CardTitle>
+          <CardDescription>
+            Permanently delete your account, all conversations, messages, and memories. This cannot be undone.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" disabled={deletingAccount}>
+                {deletingAccount ? "Deleting…" : "Delete account"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete your account, all conversations, all messages, and your entire memory graph. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => deleteAccount()}
+                >
+                  Delete forever
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
     </div>
