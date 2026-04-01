@@ -22,7 +22,7 @@ function nodeColor(node: SimNode): string {
   const staleColor = "#94a3b8"
   const nowSec = Date.now() / 1000
   const ageDays = (nowSec - node.created_at) / 86400
-  // Full color within 7 days; fully stale at 60+ days
+  // Fades linearly: vivid at 0 days, fully stale at 60+ days
   const t = Math.min(Math.max(ageDays / 60, 0), 1)
   return d3.interpolateRgb(baseColor, staleColor)(t)
 }
