@@ -59,6 +59,19 @@ export function useDeleteClaim() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => apiFetch<void>(`/api/memories/${id}`, { method: "DELETE" }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["memories"] }),
+    onMutate: (id: string) => {
+      qc.setQueryData<GraphData>(["memories"], prev =>
+        prev
+          ? {
+              nodes: prev.nodes.filter(n => n.id !== id),
+              links: prev.links.filter(l => l.source !== id && l.target !== id),
+            }
+          : prev,
+      )
+    },
+    onSuccess: (_, id) => {
+      qc.removeQueries({ queryKey: ["memory", id] })
+      qc.invalidateQueries({ queryKey: ["memories"] })
+    },
   })
 }
