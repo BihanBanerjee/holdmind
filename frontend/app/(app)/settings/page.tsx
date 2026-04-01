@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { CheckCircle, KeyRound, User } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
@@ -71,11 +71,17 @@ export default function SettingsPage() {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["me"] })
-      setDisplayName("")
       setProfileError("")
+      toast.success("Display name updated")
     },
     onError: (err: Error) => setProfileError(err.message),
   })
+
+  useEffect(() => {
+    if (me?.display_name != null && displayName === "") {
+      setDisplayName(me.display_name)
+    }
+  }, [me])
 
   return (
     <div className="max-w-xl mx-auto px-6 py-10">
