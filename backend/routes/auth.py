@@ -8,7 +8,7 @@ from auth.jwt import create_access_token
 from database import get_db
 from limiter import limiter
 from models.user import User
-from schemas.auth import SigninRequest, SignupRequest, TokenResponse, UserResponse
+from schemas.auth import SigninRequest, SignupRequest, TokenResponse, UserResponse, UpdateProfileRequest
 from services.auth_service import authenticate_user, create_user
 from services.token_service import create_refresh_token
 
@@ -44,4 +44,19 @@ def signin(request: Request, response: Response, body: SigninRequest, db: Sessio
 @router.get("/me", response_model=UserResponse)
 @limiter.limit("60/minute")
 def me(request: Request, current_user: User = Depends(get_current_user)):
+    return UserResponse.model_validate(current_user)
+
+
+@router.patch("/me", response_model=UserResponse)
+@limiter.limit("30/minute")
+def update_me(
+    request: Request,
+    body: UpdateProfileRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if body.display_name is not None:
+        current_user.display_name = body.display_name.strip() or None
+    db.commit()
+    db.refresh(current_user)
     return UserResponse.model_validate(current_user)

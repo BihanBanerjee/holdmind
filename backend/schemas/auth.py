@@ -12,9 +12,19 @@ class SigninRequest(BaseModel):
     password: str
 
 
+class UpdateProfileRequest(BaseModel):
+    display_name: str | None = None
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
 class UserResponse(BaseModel):
     id: str
     email: str
+    display_name: str | None = None
 
     model_config = {"from_attributes": True}
 
