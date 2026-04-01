@@ -17,6 +17,7 @@ class MessageResponse(BaseModel):
     role: str
     content: str
     created_at: datetime | None
+    claims: list | None = None
 
     model_config = {"from_attributes": True}
 

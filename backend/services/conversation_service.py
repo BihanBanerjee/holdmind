@@ -99,9 +99,16 @@ def save_messages(
     conversation_id: str,
     user_content: str,
     assistant_content: str,
+    claims: list | None = None,
 ) -> None:
+    import json
     db.add(ChatMessage(conversation_id=conversation_id, role="user", content=user_content))
-    db.add(ChatMessage(conversation_id=conversation_id, role="assistant", content=assistant_content))
+    db.add(ChatMessage(
+        conversation_id=conversation_id,
+        role="assistant",
+        content=assistant_content,
+        claims_json=json.dumps(claims) if claims else None,
+    ))
     db.commit()
 
 

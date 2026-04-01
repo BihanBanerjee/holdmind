@@ -61,7 +61,7 @@ def chat(
                     api_key=api_key,
                     store=store,
                 )
-                save_messages(db, conversation_id, body.message, full_response)
+                save_messages(db, conversation_id, body.message, full_response, claims)
                 auto_title_conversation(db, conversation_id, current_user.id, body.message)
             except Exception as post_err:
                 claims = []
