@@ -1,5 +1,5 @@
 # holdmind/backend/schemas/auth.py
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class SignupRequest(BaseModel):
@@ -13,7 +13,7 @@ class SigninRequest(BaseModel):
 
 
 class UpdateProfileRequest(BaseModel):
-    display_name: str | None = None
+    display_name: str | None = Field(None, max_length=100)
 
 
 class ChangePasswordRequest(BaseModel):
