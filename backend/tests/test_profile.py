@@ -58,3 +58,49 @@ def test_get_me_returns_display_name(client):
 def test_patch_me_requires_auth(client):
     r = client.patch("/api/auth/me", json={"display_name": "Nobody"})
     assert r.status_code == 401
+
+
+def test_change_password_succeeds_with_correct_current(client):
+    token = register_and_login(client)
+    r = client.post(
+        "/api/auth/change-password",
+        json={"current_password": "password123", "new_password": "newpass456"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert r.status_code == 204
+    # Old password no longer works
+    r2 = client.post("/api/auth/signin", json={"email": "user@test.com", "password": "password123"})
+    assert r2.status_code == 401
+    # New password works
+    r3 = client.post("/api/auth/signin", json={"email": "user@test.com", "password": "newpass456"})
+    assert r3.status_code == 200
+
+
+def test_change_password_rejects_wrong_current(client):
+    token = register_and_login(client)
+    r = client.post(
+        "/api/auth/change-password",
+        json={"current_password": "wrongpass", "new_password": "newpass456"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert r.status_code == 400
+    assert "incorrect" in r.json()["detail"].lower()
+
+
+def test_change_password_rejects_short_new_password(client):
+    token = register_and_login(client)
+    r = client.post(
+        "/api/auth/change-password",
+        json={"current_password": "password123", "new_password": "short"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert r.status_code == 400
+    assert "8" in r.json()["detail"]
+
+
+def test_change_password_requires_auth(client):
+    r = client.post(
+        "/api/auth/change-password",
+        json={"current_password": "password123", "new_password": "newpass456"},
+    )
+    assert r.status_code == 401

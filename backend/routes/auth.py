@@ -8,7 +8,8 @@ from auth.jwt import create_access_token
 from database import get_db
 from limiter import limiter
 from models.user import User
-from schemas.auth import SigninRequest, SignupRequest, TokenResponse, UserResponse, UpdateProfileRequest
+from auth.password import hash_password, verify_password
+from schemas.auth import SigninRequest, SignupRequest, TokenResponse, UserResponse, UpdateProfileRequest, ChangePasswordRequest
 from services.auth_service import authenticate_user, create_user
 from services.token_service import create_refresh_token
 
@@ -60,3 +61,25 @@ def update_me(
     db.commit()
     db.refresh(current_user)
     return UserResponse.model_validate(current_user)
+
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("5/minute")
+def change_password(
+    request: Request,
+    body: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not verify_password(body.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+    if len(body.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters",
+        )
+    current_user.hashed_password = hash_password(body.new_password)
+    db.commit()
