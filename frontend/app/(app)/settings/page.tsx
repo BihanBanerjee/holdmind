@@ -1,7 +1,8 @@
 "use client"
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { CheckCircle, KeyRound } from "lucide-react"
+import { CheckCircle, KeyRound, User } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 import { toast } from "sonner"
 import { apiFetch } from "@/lib/api"
 import { Button } from "@/components/ui/button"
@@ -29,6 +30,8 @@ export default function SettingsPage() {
   const qc = useQueryClient()
   const [apiKey, setApiKey] = useState("")
   const [saveError, setSaveError] = useState("")
+  const [displayName, setDisplayName] = useState("")
+  const [profileError, setProfileError] = useState("")
 
   const { data: status } = useQuery({
     queryKey: ["settings"],
@@ -55,9 +58,71 @@ export default function SettingsPage() {
     onError: (err: Error) => toast.error(err.message),
   })
 
+  const { data: me } = useQuery({
+    queryKey: ["me"],
+    queryFn: () => apiFetch<{ id: string; email: string; display_name: string | null }>("/api/auth/me"),
+  })
+
+  const { mutate: saveProfile, isPending: savingProfile } = useMutation({
+    mutationFn: (name: string) =>
+      apiFetch<void>("/api/auth/me", {
+        method: "PATCH",
+        body: JSON.stringify({ display_name: name || null }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["me"] })
+      setDisplayName("")
+      setProfileError("")
+    },
+    onError: (err: Error) => setProfileError(err.message),
+  })
+
   return (
     <div className="max-w-xl mx-auto px-6 py-10">
       <h1 className="text-2xl font-semibold mb-8">Settings</h1>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Profile
+          </CardTitle>
+          <CardDescription>
+            Your display name is shown in the app. Your email cannot be changed.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <div className="space-y-1">
+            <Label>Email</Label>
+            <p className="text-sm text-muted-foreground">{me?.email ?? "—"}</p>
+          </div>
+          <form
+            onSubmit={e => {
+              e.preventDefault()
+              saveProfile(displayName.trim())
+            }}
+            className="flex flex-col gap-3"
+          >
+            <div className="space-y-1">
+              <Label htmlFor="displayname">Display name</Label>
+              <Input
+                id="displayname"
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+                placeholder={me?.display_name ?? "Enter a display name…"}
+              />
+            </div>
+            {profileError && <p className="text-sm text-destructive">{profileError}</p>}
+            <Button
+              type="submit"
+              disabled={savingProfile}
+              className="self-start"
+            >
+              {savingProfile ? "Saving…" : "Save name"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
