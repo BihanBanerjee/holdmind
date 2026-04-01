@@ -25,6 +25,7 @@ export function MemoryList({ nodes, selectedId, onSelectNode }: Props) {
       {sorted.map(node => (
         <button
           key={node.id}
+          type="button"
           onClick={() => onSelectNode(node.id)}
           className={`text-left rounded-lg border p-3 transition-colors hover:bg-accent ${
             selectedId === node.id ? "border-primary bg-accent" : "border-border"

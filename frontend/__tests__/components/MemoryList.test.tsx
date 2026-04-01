@@ -35,13 +35,13 @@ describe("MemoryList", () => {
   it("highlights the selected card with border-primary", () => {
     render(<MemoryList nodes={nodes} selectedId="2" onSelectNode={() => {}} />)
     const selectedCard = screen.getByText("visited Paris").closest("button")!
-    expect(selectedCard.className).toContain("border-primary")
+    expect(selectedCard).toHaveClass("border-primary")
   })
 
   it("does not highlight unselected cards with border-primary", () => {
     render(<MemoryList nodes={nodes} selectedId="2" onSelectNode={() => {}} />)
     const otherCard = screen.getByText("sky is blue").closest("button")!
-    expect(otherCard.className).not.toContain("border-primary")
+    expect(otherCard).not.toHaveClass("border-primary")
   })
 
   it("shows empty state message when nodes array is empty", () => {
