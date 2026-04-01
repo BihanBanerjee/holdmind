@@ -40,12 +40,12 @@ export function ConversationList({ onNavigate }: Props) {
 
   useEffect(() => {
     if (!data) return
-    if (offset === 0) {
+    if (data.offset === 0) {
       setAccumulated(data.items)
     } else {
       setAccumulated(prev => [...prev, ...data.items])
     }
-  }, [data]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [data])
 
   function toggleArchived() {
     setArchived(a => !a)
