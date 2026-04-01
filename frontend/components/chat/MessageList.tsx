@@ -109,6 +109,7 @@ export function MessageList({ conversationId, streamingContent, pendingUserMessa
             content={msg.content}
             highlight={searchQuery}
             isLast={i === lastAssistantIdx}
+            claims={msg.claims ?? undefined}
             onRegenerate={
               i === lastAssistantIdx && lastUserMsg && onRegenerate
                 ? () => onRegenerate(lastUserMsg)

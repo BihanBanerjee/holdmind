@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { render, screen, fireEvent, act } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MessageBubble } from "@/components/chat/MessageBubble"
+import type { Claim } from "@/hooks/useChat"
 
 describe("MessageBubble", () => {
   it("user message wrapper has items-end class", () => {
@@ -123,5 +124,39 @@ describe("MessageBubble — action bar", () => {
     await user.click(downBtn)
     expect(downBtn).toHaveAttribute("data-active", "true")
     expect(upBtn).toHaveAttribute("data-active", "false")
+  })
+})
+
+describe("MessageBubble — claim annotations", () => {
+  const claims: Claim[] = [
+    { id: "1", type: "semantic", text: "sky is blue", confidence: 0.9 },
+    { id: "2", type: "episodic", text: "visited Paris", confidence: 0.7 },
+  ]
+
+  it("renders a badge for each claim when claims prop is provided", () => {
+    render(<MessageBubble role="assistant" content="Hi" claims={claims} />)
+    expect(screen.getByText("sky is blue")).toBeInTheDocument()
+    expect(screen.getByText("visited Paris")).toBeInTheDocument()
+  })
+
+  it("renders the claim type alongside each badge", () => {
+    render(<MessageBubble role="assistant" content="Hi" claims={claims} />)
+    expect(screen.getAllByText("semantic")).toHaveLength(1)
+    expect(screen.getAllByText("episodic")).toHaveLength(1)
+  })
+
+  it("does not render claim section when claims is undefined", () => {
+    render(<MessageBubble role="assistant" content="Hi" />)
+    expect(screen.queryByText("Extracted memories")).not.toBeInTheDocument()
+  })
+
+  it("does not render claim section when claims is an empty array", () => {
+    render(<MessageBubble role="assistant" content="Hi" claims={[]} />)
+    expect(screen.queryByText("Extracted memories")).not.toBeInTheDocument()
+  })
+
+  it("does not render claim section on user messages even with claims prop", () => {
+    render(<MessageBubble role="user" content="Hello" claims={claims} />)
+    expect(screen.queryByText("sky is blue")).not.toBeInTheDocument()
   })
 })

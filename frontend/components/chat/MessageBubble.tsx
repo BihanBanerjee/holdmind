@@ -1,6 +1,8 @@
 "use client"
 import { useState, useRef, useEffect } from "react"
 import { Copy, Check, ThumbsUp, ThumbsDown, RefreshCw } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import type { Claim } from "@/hooks/useChat"
 
 interface Props {
   role: "user" | "assistant"
@@ -8,9 +10,10 @@ interface Props {
   highlight?: string
   isLast?: boolean
   onRegenerate?: () => void
+  claims?: Claim[]
 }
 
-export function MessageBubble({ role, content, highlight, isLast, onRegenerate }: Props) {
+export function MessageBubble({ role, content, highlight, isLast, onRegenerate, claims }: Props) {
   const isUser = role === "user"
   const [copied, setCopied] = useState(false)
   const [thumbUp, setThumbUp] = useState(false)
@@ -38,7 +41,7 @@ export function MessageBubble({ role, content, highlight, isLast, onRegenerate }
       setCopied(true)
       copyTimerRef.current = setTimeout(() => setCopied(false), 2000)
     } catch {
-      // clipboard write failed (e.g. page not focused) — do nothing
+      // clipboard write failed — do nothing
     }
   }
 
@@ -51,6 +54,8 @@ export function MessageBubble({ role, content, highlight, isLast, onRegenerate }
     setThumbDown(v => !v)
     setThumbUp(false)
   }
+
+  const showClaims = !isUser && claims && claims.length > 0
 
   return (
     <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} mb-3`}>
@@ -100,6 +105,26 @@ export function MessageBubble({ role, content, highlight, isLast, onRegenerate }
               <RefreshCw className="h-3 w-3" />
             </button>
           )}
+        </div>
+      )}
+
+      {showClaims && (
+        <div className="max-w-[75%] mt-1 px-1 flex flex-wrap gap-1">
+          <span className="text-[10px] text-muted-foreground self-center mr-1">Extracted memories</span>
+          {claims.map(c => (
+            <Badge
+              key={c.id}
+              variant="outline"
+              className={`text-[10px] h-5 gap-1 ${
+                c.type === "semantic"
+                  ? "border-blue-300 text-blue-600 dark:border-blue-700 dark:text-blue-400"
+                  : "border-purple-300 text-purple-600 dark:border-purple-700 dark:text-purple-400"
+              }`}
+            >
+              <span className="font-medium">{c.type}</span>
+              <span className="truncate max-w-[120px]">{c.text}</span>
+            </Badge>
+          ))}
         </div>
       )}
     </div>

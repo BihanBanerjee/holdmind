@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query"
 import { apiFetch } from "@/lib/api"
+import type { Claim } from "@/hooks/useChat"
 
 export interface Message {
   id: string
   role: "user" | "assistant"
   content: string
   created_at: string
+  claims: Claim[] | null
 }
 
 export interface PaginatedMessages {
