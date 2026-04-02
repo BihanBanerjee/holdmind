@@ -47,7 +47,10 @@ export function HeroGraph() {
       if (!canvas) return
       canvas.width = canvas.offsetWidth
       canvas.height = canvas.offsetHeight
+      if (canvas.width === 0 || canvas.height === 0) return
       nodes = makeNodes(canvas.width, canvas.height)
+      cancelAnimationFrame(raf)
+      draw()
     }
 
     function draw() {
@@ -106,8 +109,6 @@ export function HeroGraph() {
 
     const ro = new ResizeObserver(resize)
     ro.observe(canvas)
-    resize()
-    draw()
 
     return () => {
       ro.disconnect()
