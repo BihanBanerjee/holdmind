@@ -15,12 +15,14 @@ export function useChat(conversationId: string) {
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamingContent, setStreamingContent] = useState("")
   const [claims, setClaims] = useState<Claim[]>([])
+  const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null)
   const qc = useQueryClient()
 
   const send = useCallback(
     async (message: string) => {
       const token =
         typeof window !== "undefined" ? localStorage.getItem("hm_token") : null
+      setPendingUserMessage(message)
       setIsStreaming(true)
       setStreamingContent("")
       setClaims([])
@@ -57,8 +59,11 @@ export function useChat(conversationId: string) {
             if (!line.startsWith("data: ")) continue
             const raw = line.slice(6)
             if (raw === "[DONE]") {
-              qc.invalidateQueries({ queryKey: ["messages", conversationId] })
-              qc.invalidateQueries({ queryKey: ["conversations"] })
+              await Promise.all([
+                qc.invalidateQueries({ queryKey: ["messages", conversationId] }),
+                qc.invalidateQueries({ queryKey: ["conversations"] }),
+              ])
+              setPendingUserMessage(null)
               return
             }
             let frame: { type: string; content?: string; data?: unknown; message?: string }
@@ -80,10 +85,11 @@ export function useChat(conversationId: string) {
         }
       } finally {
         setIsStreaming(false)
+        setPendingUserMessage(null)
       }
     },
     [conversationId, qc],
   )
 
-  return { send, isStreaming, streamingContent, claims }
+  return { send, isStreaming, streamingContent, claims, pendingUserMessage }
 }
