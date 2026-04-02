@@ -29,3 +29,10 @@ describe("BeliefGraph — zoom controls", () => {
     expect(screen.getByRole("button", { name: "Reset zoom" })).toBeInTheDocument()
   })
 })
+
+describe("BeliefGraph — mobile tooltip", () => {
+  it("does not render tooltip div when no touch active", () => {
+    render(<BeliefGraph data={data} selectedId={null} onSelectNode={() => {}} />)
+    expect(screen.queryByTestId("node-tooltip")).not.toBeInTheDocument()
+  })
+})

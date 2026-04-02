@@ -48,6 +48,9 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
   const nodesDataRef = useRef<SimNode[]>([])
   const linksDataRef = useRef<SimLink[]>([])
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
+  const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [tooltip, setTooltip] = useState<{ label: string; x: number; y: number } | null>(null)
   const onSelectNodeRef = useRef(onSelectNode)
 
   useEffect(() => {
@@ -123,6 +126,31 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
       .attr("stroke-width", 2.5)
       .style("cursor", "pointer")
       .on("click", (_e, d) => onSelectNodeRef.current(d.id))
+      .on("touchstart", (e: TouchEvent, d) => {
+        e.preventDefault()
+        const touch = e.touches[0]
+        const rect = el.getBoundingClientRect()
+        touchTimerRef.current = setTimeout(() => {
+          touchTimerRef.current = null
+          setTooltip({
+            label: d.label,
+            x: touch.clientX - rect.left,
+            y: touch.clientY - rect.top - 48,
+          })
+        }, 600)
+      })
+      .on("touchend", () => {
+        if (touchTimerRef.current) {
+          clearTimeout(touchTimerRef.current)
+          touchTimerRef.current = null
+          return
+        }
+        hideTimerRef.current = setTimeout(() => setTooltip(null), 1200)
+      })
+      .on("touchmove", () => {
+        if (touchTimerRef.current) clearTimeout(touchTimerRef.current)
+        setTooltip(null)
+      })
       .call(
         d3
           .drag<SVGCircleElement, SimNode>()
@@ -185,6 +213,8 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
 
     return () => {
       simulation.stop()
+      if (touchTimerRef.current) clearTimeout(touchTimerRef.current)
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
     }
   }, [data, dims])
 
@@ -237,6 +267,16 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
   return (
     <div className="relative w-full h-full">
       <svg ref={svgRef} className="w-full h-full" />
+      {tooltip && (
+        <div
+          role="tooltip"
+          data-testid="node-tooltip"
+          style={{ left: tooltip.x, top: tooltip.y }}
+          className="absolute z-10 max-w-[200px] rounded-md bg-popover text-popover-foreground border border-border px-2 py-1 text-xs shadow-md pointer-events-none"
+        >
+          {tooltip.label}
+        </div>
+      )}
       <div className="absolute top-2 right-2 flex flex-col gap-1">
         <button
           type="button"
