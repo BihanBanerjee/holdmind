@@ -17,6 +17,7 @@ dependencies = [
     "pydantic-settings>=2.13.1",
     "python-dotenv>=1.2.2",
     "python-jose[cryptography]>=3.5.0",
+    "qdrant-client<1.13",
     "recollectx",
     "slowapi>=0.1.9",
     "sqlalchemy>=2.0.48",
