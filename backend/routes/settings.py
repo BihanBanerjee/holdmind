@@ -1,4 +1,5 @@
 # holdmind/backend/routes/settings.py
+import requests
 from fastapi import APIRouter, Depends, Request, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -11,6 +12,8 @@ from services.settings_service import delete_api_key, has_api_key, save_api_key
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 
+_OPENROUTER_AUTH_URL = "https://openrouter.ai/api/v1/auth/key"
+
 
 class ApiKeyRequest(BaseModel):
     api_key: str
@@ -20,10 +23,32 @@ class ApiKeyStatusResponse(BaseModel):
     has_api_key: bool
 
 
+class ValidateKeyResponse(BaseModel):
+    valid: bool
+
+
 @router.get("", response_model=ApiKeyStatusResponse)
 @limiter.limit("60/minute")
 def get_status(request: Request, current_user: User = Depends(get_current_user)):
     return ApiKeyStatusResponse(has_api_key=has_api_key(current_user))
+
+
+@router.post("/validate-key", response_model=ValidateKeyResponse)
+@limiter.limit("10/minute")
+def validate_key(
+    request: Request,
+    body: ApiKeyRequest,
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        resp = requests.get(
+            _OPENROUTER_AUTH_URL,
+            headers={"Authorization": f"Bearer {body.api_key}"},
+            timeout=5,
+        )
+        return ValidateKeyResponse(valid=resp.status_code == 200)
+    except requests.RequestException:
+        return ValidateKeyResponse(valid=False)
 
 
 @router.post("/api-key", response_model=ApiKeyStatusResponse)

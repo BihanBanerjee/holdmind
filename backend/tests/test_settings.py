@@ -1,4 +1,5 @@
 # holdmind/backend/tests/test_settings.py
+from unittest.mock import patch, Mock
 
 
 def signup_and_get_headers(client):
@@ -56,3 +57,44 @@ def test_delete_api_key_when_none_set(client):
     # Delete without ever saving — should succeed silently
     resp = client.delete("/api/settings/api-key", headers=headers)
     assert resp.status_code == 204
+
+
+def test_validate_key_returns_valid_true_for_good_key(client):
+    headers = signup_and_get_headers(client)
+    mock_resp = Mock()
+    mock_resp.status_code = 200
+    with patch("routes.settings.requests.get", return_value=mock_resp):
+        resp = client.post(
+            "/api/settings/validate-key",
+            json={"api_key": "sk-or-v1-valid-key"},
+            headers=headers,
+        )
+    assert resp.status_code == 200
+    assert resp.json()["valid"] is True
+
+
+def test_validate_key_returns_valid_false_for_bad_key(client):
+    headers = signup_and_get_headers(client)
+    mock_resp = Mock()
+    mock_resp.status_code = 401
+    with patch("routes.settings.requests.get", return_value=mock_resp):
+        resp = client.post(
+            "/api/settings/validate-key",
+            json={"api_key": "sk-or-v1-bad-key"},
+            headers=headers,
+        )
+    assert resp.status_code == 200
+    assert resp.json()["valid"] is False
+
+
+def test_validate_key_returns_valid_false_on_network_error(client):
+    headers = signup_and_get_headers(client)
+    import requests as req_lib
+    with patch("routes.settings.requests.get", side_effect=req_lib.RequestException("timeout")):
+        resp = client.post(
+            "/api/settings/validate-key",
+            json={"api_key": "sk-or-v1-any-key"},
+            headers=headers,
+        )
+    assert resp.status_code == 200
+    assert resp.json()["valid"] is False

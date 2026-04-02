@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 interface ApiKeyStatus {
-  has_key: boolean
+  has_api_key: boolean
 }
 
 export default function SettingsPage() {
@@ -31,6 +31,8 @@ export default function SettingsPage() {
   const { logout } = useAuth()
   const [apiKey, setApiKey] = useState("")
   const [saveError, setSaveError] = useState("")
+  const [validating, setValidating] = useState(false)
+  const [validationState, setValidationState] = useState<"idle" | "valid" | "invalid">("idle")
   const [displayName, setDisplayName] = useState("")
   const [profileError, setProfileError] = useState("")
   const [currentPassword, setCurrentPassword] = useState("")
@@ -219,7 +221,7 @@ export default function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          {status?.has_key ? (
+          {status?.has_api_key ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm">
                 <CheckCircle className="h-4 w-4 text-green-500" />
@@ -253,31 +255,56 @@ export default function SettingsPage() {
           )}
 
           <form
-            onSubmit={e => {
+            onSubmit={async e => {
               e.preventDefault()
-              if (apiKey.trim()) saveKey(apiKey.trim())
+              const trimmed = apiKey.trim()
+              if (!trimmed) return
+              setValidating(true)
+              setValidationState("idle")
+              try {
+                const result = await apiFetch<{ valid: boolean }>("/api/settings/validate-key", {
+                  method: "POST",
+                  body: JSON.stringify({ api_key: trimmed }),
+                })
+                if (result.valid) {
+                  setValidationState("valid")
+                  saveKey(trimmed)
+                } else {
+                  setValidationState("invalid")
+                }
+              } catch {
+                setValidationState("invalid")
+              } finally {
+                setValidating(false)
+              }
             }}
             className="flex flex-col gap-3"
           >
             <div className="space-y-1">
               <Label htmlFor="apikey">
-                {status?.has_key ? "Replace key" : "Add key"}
+                {status?.has_api_key ? "Replace key" : "Add key"}
               </Label>
               <Input
                 id="apikey"
                 type="password"
                 value={apiKey}
-                onChange={e => setApiKey(e.target.value)}
+                onChange={e => { setApiKey(e.target.value); setValidationState("idle") }}
                 placeholder="sk-or-…"
               />
             </div>
+            {validationState === "invalid" && (
+              <p className="text-sm text-destructive">Invalid API key — check it and try again.</p>
+            )}
+            {validationState === "valid" && (
+              <p className="text-sm text-green-600">Key validated ✓</p>
+            )}
             {saveError && <p className="text-sm text-destructive">{saveError}</p>}
             <Button
               type="submit"
-              disabled={saving || !apiKey.trim()}
+              disabled={saving || validating || !apiKey.trim()}
               className="self-start"
             >
-              {saving ? "Saving…" : "Save key"}
+              {validating ? "Validating…" : saving ? "Saving…" : "Save key"}
             </Button>
           </form>
         </CardContent>
