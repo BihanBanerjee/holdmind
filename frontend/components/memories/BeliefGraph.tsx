@@ -44,6 +44,7 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
   // Refs to persist D3 selections between selectedId changes
   const nodeSelRef = useRef<d3.Selection<SVGCircleElement, SimNode, SVGGElement, unknown> | null>(null)
   const linkSelRef = useRef<d3.Selection<SVGLineElement, SimLink, SVGGElement, unknown> | null>(null)
+  const nodesDataRef = useRef<SimNode[]>([])
   const linksDataRef = useRef<SimLink[]>([])
 
   useEffect(() => {
@@ -76,6 +77,7 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
 
     const nodes: SimNode[] = data.nodes.map(n => ({ ...n }))
     const links: SimLink[] = data.links.map(l => ({ ...l })) as SimLink[]
+    nodesDataRef.current = nodes
     linksDataRef.current = links
 
     const simulation = d3
