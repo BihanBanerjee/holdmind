@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 import * as d3 from "d3"
+import { ZoomIn, ZoomOut, Maximize2 } from "lucide-react"
 import type { GraphData, GraphNode } from "@/hooks/useMemories"
 
 interface SimNode extends GraphNode, d3.SimulationNodeDatum {}
@@ -46,6 +47,12 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
   const linkSelRef = useRef<d3.Selection<SVGLineElement, SimLink, SVGGElement, unknown> | null>(null)
   const nodesDataRef = useRef<SimNode[]>([])
   const linksDataRef = useRef<SimLink[]>([])
+  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
+  const onSelectNodeRef = useRef(onSelectNode)
+
+  useEffect(() => {
+    onSelectNodeRef.current = onSelectNode
+  }, [onSelectNode])
 
   useEffect(() => {
     const el = svgRef.current
@@ -69,11 +76,12 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
     const { width, height } = dims
     const g = svg.append("g")
 
-    svg.call(
-      d3.zoom<SVGSVGElement, unknown>().on("zoom", e => {
-        g.attr("transform", e.transform.toString())
-      }),
-    )
+    const zoom = d3.zoom<SVGSVGElement, unknown>()
+      .scaleExtent([0.1, 4])
+      .on("zoom", e => { g.attr("transform", e.transform.toString()) })
+
+    svg.call(zoom)
+    zoomRef.current = zoom
 
     const nodes: SimNode[] = data.nodes.map(n => ({ ...n }))
     const links: SimLink[] = data.links.map(l => ({ ...l })) as SimLink[]
@@ -114,7 +122,7 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
       .attr("stroke", "none")
       .attr("stroke-width", 2.5)
       .style("cursor", "pointer")
-      .on("click", (_e, d) => onSelectNode(d.id))
+      .on("click", (_e, d) => onSelectNodeRef.current(d.id))
       .call(
         d3
           .drag<SVGCircleElement, SimNode>()
@@ -158,13 +166,27 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
         .attr("y", d => d.y ?? 0)
     })
 
+    // Auto-fit the viewport when simulation stabilizes
+    simulation.on("end", () => {
+      if (nodes.length === 0) return
+      const xs = nodes.map(n => n.x ?? 0)
+      const ys = nodes.map(n => n.y ?? 0)
+      const minX = Math.min(...xs), maxX = Math.max(...xs)
+      const minY = Math.min(...ys), maxY = Math.max(...ys)
+      const padded = { w: maxX - minX + 80, h: maxY - minY + 80 }
+      const scale = Math.min(width / padded.w, height / padded.h, 1) * 0.9
+      const tx = (width - scale * (minX + maxX)) / 2
+      const ty = (height - scale * (minY + maxY)) / 2
+      svg.call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale))
+    })
+
     nodeSelRef.current = node
     linkSelRef.current = link
 
     return () => {
       simulation.stop()
     }
-  }, [data, onSelectNode, dims])
+  }, [data, dims])
 
   // Effect 2: update highlight when selectedId changes — no simulation restart
   useEffect(() => {
@@ -173,7 +195,6 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
     if (!node || !link) return
 
     if (!selectedId) {
-      // No selection: restore all nodes/links to default appearance
       node
         .attr("opacity", d => 0.4 + d.confidence * 0.6)
         .attr("stroke", "none")
@@ -181,7 +202,6 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
       return
     }
 
-    // Compute the set of IDs directly connected to selectedId
     const connectedIds = new Set<string>([selectedId])
     linksDataRef.current.forEach(l => {
       const srcId = typeof l.source === "object" ? (l.source as SimNode).id : (l.source as string)
@@ -201,5 +221,48 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
     })
   }, [selectedId])
 
-  return <svg ref={svgRef} className="w-full h-full" />
+  function handleZoomIn() {
+    if (svgRef.current && zoomRef.current)
+      d3.select(svgRef.current).call(zoomRef.current.scaleBy, 1.3)
+  }
+  function handleZoomOut() {
+    if (svgRef.current && zoomRef.current)
+      d3.select(svgRef.current).call(zoomRef.current.scaleBy, 1 / 1.3)
+  }
+  function handleZoomReset() {
+    if (svgRef.current && zoomRef.current)
+      d3.select(svgRef.current).call(zoomRef.current.transform, d3.zoomIdentity)
+  }
+
+  return (
+    <div className="relative w-full h-full">
+      <svg ref={svgRef} className="w-full h-full" />
+      <div className="absolute top-2 right-2 flex flex-col gap-1">
+        <button
+          type="button"
+          aria-label="Zoom in"
+          onClick={handleZoomIn}
+          className="p-1.5 rounded bg-background/80 backdrop-blur-sm border border-border text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ZoomIn className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          aria-label="Zoom out"
+          onClick={handleZoomOut}
+          className="p-1.5 rounded bg-background/80 backdrop-blur-sm border border-border text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ZoomOut className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          aria-label="Reset zoom"
+          onClick={handleZoomReset}
+          className="p-1.5 rounded bg-background/80 backdrop-blur-sm border border-border text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Maximize2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  )
 }
