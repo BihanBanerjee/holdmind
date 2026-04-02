@@ -5,6 +5,7 @@ export interface GraphNode {
   id: string
   type: string
   label: string
+  short_id: string
   confidence: number
   importance: number
   created_at: number
@@ -25,6 +26,7 @@ export interface ClaimDetail {
   id: string
   type: string
   label: string
+  short_id: string
   confidence: number
   importance: number
   support_count: number

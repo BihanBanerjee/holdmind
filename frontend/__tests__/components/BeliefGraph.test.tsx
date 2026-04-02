@@ -7,8 +7,8 @@ const now = Date.now() / 1000
 
 const data: GraphData = {
   nodes: [
-    { id: "1", type: "semantic", label: "sky is blue", confidence: 0.9, importance: 0.8, created_at: now },
-    { id: "2", type: "episodic", label: "visited Paris", confidence: 0.7, importance: 0.6, created_at: now - 86400 * 10 },
+    { id: "1", type: "semantic", label: "sky is blue", short_id: "sky-is-blue-0001", confidence: 0.9, importance: 0.8, created_at: now },
+    { id: "2", type: "episodic", label: "visited Paris", short_id: "visited-paris-0002", confidence: 0.7, importance: 0.6, created_at: now - 86400 * 10 },
   ],
   links: [{ source: "1", target: "2", relation: "supports" }],
 }

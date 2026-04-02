@@ -1,4 +1,6 @@
 # holdmind/backend/services/memory_service.py
+import re
+
 from recollectx.claims import Claim, EpisodicClaim, SemanticClaim
 from recollectx.graph.edges import BeliefEdge
 from recollectx.graph.graph import BeliefGraph
@@ -21,12 +23,20 @@ def _claim_label(claim: Claim) -> str:
     return str(claim.id)
 
 
+def make_short_id(label: str, claim_id: str) -> str:
+    """Generate a human-readable slug from the claim label and first 4 chars of its UUID."""
+    words = re.sub(r"[^a-z0-9]", " ", label.lower()).split()[:3]
+    slug = "-".join(words) if words else "memory"
+    return f"{slug}-{claim_id[:4]}"
+
+
 def build_graph_data(claims: list[Claim], edges: list[BeliefEdge]) -> dict:
     nodes = [
         NodeResponse(
             id=c.id,
             type=c.type,
             label=_claim_label(c),
+            short_id=make_short_id(_claim_label(c), c.id),
             confidence=c.confidence,
             importance=c.importance,
             created_at=c.created_at,
@@ -62,10 +72,12 @@ def get_claim_detail(store: MemoryStore, claim_id: str) -> ClaimDetailResponse |
     for edge in relevant_edges:
         graph.add(edge)
 
+    label = _claim_label(claim)
     return ClaimDetailResponse(
         id=claim.id,
         type=claim.type,
-        label=_claim_label(claim),
+        label=label,
+        short_id=make_short_id(label, claim.id),
         confidence=claim.confidence,
         importance=claim.importance,
         support_count=claim.support_count,

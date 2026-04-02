@@ -4,9 +4,9 @@ import { MemoryList } from "@/components/memories/MemoryList"
 import type { GraphNode } from "@/hooks/useMemories"
 
 const nodes: GraphNode[] = [
-  { id: "1", type: "semantic", label: "sky is blue", confidence: 0.9, importance: 0.8, created_at: 1743500000 },
-  { id: "2", type: "episodic", label: "visited Paris", confidence: 0.5, importance: 0.6, created_at: 1743500000 },
-  { id: "3", type: "semantic", label: "water is wet", confidence: 0.7, importance: 0.9, created_at: 1743500000 },
+  { id: "1", type: "semantic", label: "sky is blue", short_id: "sky-is-blue-0001", confidence: 0.9, importance: 0.8, created_at: 1743500000 },
+  { id: "2", type: "episodic", label: "visited Paris", short_id: "visited-paris-0002", confidence: 0.5, importance: 0.6, created_at: 1743500000 },
+  { id: "3", type: "semantic", label: "water is wet", short_id: "water-is-wet-0003", confidence: 0.7, importance: 0.9, created_at: 1743500000 },
 ]
 
 describe("MemoryList", () => {

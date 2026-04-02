@@ -58,6 +58,18 @@ export function ClaimDetail({ claimId, allNodes, onSelectNode, onClose }: Props)
           <div>
             <Badge className="mb-2 capitalize">{data.type}</Badge>
             <p className="text-sm font-medium leading-snug">{data.label}</p>
+            <button
+              type="button"
+              onClick={() =>
+                navigator.clipboard.writeText(data.short_id)
+                  .then(() => toast.success("Copied"))
+                  .catch(() => toast.error("Copy failed"))
+              }
+              title="Copy ID"
+              className="mt-1 font-mono text-[11px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded hover:bg-muted/80 transition-colors cursor-copy"
+            >
+              {data.short_id}
+            </button>
           </div>
 
           <div className="flex flex-col gap-2">

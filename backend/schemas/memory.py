@@ -6,6 +6,7 @@ class NodeResponse(BaseModel):
     id: str
     type: str           # "episodic" or "semantic"
     label: str          # human-readable text
+    short_id: str
     confidence: float
     importance: float
     created_at: float
@@ -34,6 +35,7 @@ class ClaimDetailResponse(BaseModel):
     id: str
     type: str
     label: str
+    short_id: str
     confidence: float
     importance: float
     support_count: int
