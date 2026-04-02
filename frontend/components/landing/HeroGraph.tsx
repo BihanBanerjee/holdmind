@@ -9,7 +9,6 @@ interface Node {
   vy: number
   r: number
   color: string
-  glowColor: string
 }
 
 const SEMANTIC_COLOR = "#3b82f6"
@@ -28,7 +27,6 @@ function makeNodes(w: number, h: number): Node[] {
       vy: (Math.random() - 0.5) * 0.4,
       r: 3 + Math.random() * 3,
       color,
-      glowColor: color,
     }
   })
 }
@@ -43,7 +41,7 @@ export function HeroGraph() {
     if (!ctx) return
 
     let nodes: Node[] = []
-    let raf: number
+    let raf = 0
 
     function resize() {
       if (!canvas) return
@@ -81,8 +79,8 @@ export function HeroGraph() {
       for (const n of nodes) {
         // Glow ring
         const grd = ctx.createRadialGradient(n.x, n.y, n.r, n.x, n.y, n.r * 5)
-        grd.addColorStop(0, n.glowColor + "33")
-        grd.addColorStop(1, n.glowColor + "00")
+        grd.addColorStop(0, n.color + "33")
+        grd.addColorStop(1, n.color + "00")
         ctx.beginPath()
         ctx.arc(n.x, n.y, n.r * 5, 0, Math.PI * 2)
         ctx.fillStyle = grd
