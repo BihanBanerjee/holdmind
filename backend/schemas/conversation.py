@@ -12,12 +12,19 @@ class PatchConversationRequest(BaseModel):
     archived: bool | None = None
 
 
+class ClaimItem(BaseModel):
+    id: str
+    type: str
+    text: str
+    confidence: float
+
+
 class MessageResponse(BaseModel):
     id: str
     role: str
     content: str
     created_at: datetime | None
-    claims: list[dict] | None = None
+    claims: list[ClaimItem] | None = None
 
     model_config = {"from_attributes": True}
 
