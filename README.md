@@ -1,8 +1,10 @@
 # Holdmind
 
-Memory-augmented AI chatbot. Conversations are stored, memories are extracted from them, and a belief graph tracks what the model knows about you over time.
+Belief-centric memory AI. Holdmind extracts what you know, how you feel, and what you believe from every conversation — building a typed belief graph that makes the AI smarter over time.
 
-**Stack:** FastAPI · PostgreSQL · Qdrant · Next.js 16 · TypeScript
+Unauthenticated visitors see the public landing page at `/`. Authenticated users go straight to `/chat`.
+
+**Stack:** FastAPI · PostgreSQL · Qdrant · Next.js 15 · TypeScript
 
 ---
 
@@ -65,7 +67,14 @@ pnpm dev
 
 The Next.js dev server proxies `/api/*` → `http://localhost:8000` automatically. **Do not set `NEXT_PUBLIC_API_URL`** in local dev — leaving it unset ensures all API calls go through the proxy, which is required for the `httpOnly` refresh token cookie to work.
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) — unauthenticated visitors see the landing page, authenticated users go straight to `/chat`.
+
+#### Frontend tests
+
+```bash
+cd frontend
+pnpm test:run
+```
 
 ---
 
@@ -137,8 +146,16 @@ holdmind/
 │   ├── main.py             # FastAPI app, middleware, router registration
 │   └── .env.example        # Template for required env vars
 └── frontend/
-    ├── app/                # Next.js App Router pages
-    ├── components/         # React components
+    ├── app/
+    │   ├── (marketing)/    # Public landing page (no auth shell)
+    │   │   └── page.tsx    # Landing page — checks hm_auth cookie, redirects to /chat if set
+    │   ├── (auth)/         # Login and signup pages
+    │   └── (app)/          # Authenticated app shell (chat, memories, settings)
+    ├── components/
+    │   ├── landing/        # HeroGraph and PreviewGraph canvas animations
+    │   ├── chat/           # Chat UI components
+    │   ├── memories/       # Belief graph and memory list
+    │   └── sidebar/        # Navigation sidebar
     ├── lib/
     │   ├── api.ts          # apiFetch wrapper (JWT auth, 401 refresh interceptor)
     │   └── auth-context.tsx # AuthProvider, login/logout
