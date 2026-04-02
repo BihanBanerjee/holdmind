@@ -55,6 +55,7 @@ const EDGES: PEdge[] = [
   { from: "6", to: "3", type: "supports" },
   { from: "7", to: "4", type: "supports" },
   { from: "9", to: "10", type: "derives" },
+  { from: "4", to: "6", type: "contradicts" },
 ]
 
 function truncate(s: string, max = 18): string {
