@@ -1,8 +1,11 @@
 # holdmind/backend/tests/conftest.py
 import pytest
+from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+load_dotenv()  # make .env vars available to os.environ (e.g. OPENROUTER_API_KEY for integration tests)
 
 from base import Base
 from database import get_db
