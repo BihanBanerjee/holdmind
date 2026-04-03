@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { Brain, Settings, LogOut, Sun, Moon, Menu } from "lucide-react"
 import { useTheme } from "next-themes"
@@ -14,6 +14,8 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname()
   const { logout } = useAuth()
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   function nav(path: string) {
     router.push(path)
@@ -51,12 +53,12 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           className="justify-start"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
         >
-          {theme === "dark" ? (
+          {mounted && theme === "dark" ? (
             <Sun className="mr-2 h-4 w-4" />
           ) : (
             <Moon className="mr-2 h-4 w-4" />
           )}
-          {theme === "dark" ? "Light mode" : "Dark mode"}
+          {mounted && theme === "dark" ? "Light mode" : "Dark mode"}
         </Button>
         <Button
           variant="ghost"
