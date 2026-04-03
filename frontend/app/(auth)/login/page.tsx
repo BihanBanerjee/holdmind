@@ -58,6 +58,7 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             leftIcon={<Mail className="h-4 w-4" />}
+            autoComplete="email"
             required
             autoFocus
           />
@@ -77,10 +78,12 @@ export default function LoginPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="hover:text-foreground transition-colors"
                 tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             }
+            autoComplete="current-password"
             required
           />
         </div>
