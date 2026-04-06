@@ -81,35 +81,35 @@ export function MessageBubble({ role, content, highlight, isLast, onRegenerate, 
           <button
             aria-label="Copy"
             onClick={handleCopy}
-            className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
+            className="p-2 rounded text-muted-foreground hover:text-foreground transition-colors"
           >
-            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
           </button>
           <button
             aria-label="Thumbs up"
             aria-pressed={thumbUp}
             data-active={thumbUp}
             onClick={handleThumbUp}
-            className={`p-1 rounded transition-colors ${thumbUp ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            className={`p-2 rounded transition-colors ${thumbUp ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
           >
-            <ThumbsUp className="h-3 w-3" />
+            <ThumbsUp className="h-3.5 w-3.5" />
           </button>
           <button
             aria-label="Thumbs down"
             aria-pressed={thumbDown}
             data-active={thumbDown}
             onClick={handleThumbDown}
-            className={`p-1 rounded transition-colors ${thumbDown ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}
+            className={`p-2 rounded transition-colors ${thumbDown ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}
           >
-            <ThumbsDown className="h-3 w-3" />
+            <ThumbsDown className="h-3.5 w-3.5" />
           </button>
           {isLast && onRegenerate && (
             <button
               aria-label="Regenerate"
               onClick={onRegenerate}
-              className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
+              className="p-2 rounded text-muted-foreground hover:text-foreground transition-colors"
             >
-              <RefreshCw className="h-3 w-3" />
+              <RefreshCw className="h-3.5 w-3.5" />
             </button>
           )}
         </div>

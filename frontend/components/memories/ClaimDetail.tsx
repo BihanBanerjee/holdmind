@@ -66,7 +66,7 @@ export function ClaimDetail({ claimId, allNodes, onSelectNode, onClose }: Props)
   }
 
   return (
-    <div className="w-80 shrink-0 border-l border-border flex flex-col h-full overflow-hidden">
+    <div className="fixed inset-0 z-20 bg-background flex flex-col md:relative md:inset-auto md:z-auto md:w-80 md:shrink-0 md:border-l md:border-border md:h-full md:overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
         <span className="font-medium text-sm">Claim Detail</span>
         <Button variant="ghost" size="icon" onClick={onClose}>
@@ -116,7 +116,7 @@ export function ClaimDetail({ claimId, allNodes, onSelectNode, onClose }: Props)
                   <button
                     type="button"
                     onClick={() => setEditing(true)}
-                    className="shrink-0 p-0.5 text-muted-foreground opacity-0 group-hover/label:opacity-100 transition-opacity"
+                    className="shrink-0 p-0.5 text-muted-foreground opacity-100 md:opacity-0 md:group-hover/label:opacity-100 transition-opacity"
                     aria-label="Edit label"
                   >
                     <Pencil className="h-3 w-3" />

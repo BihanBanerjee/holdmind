@@ -52,6 +52,13 @@ export default function MemoriesPage() {
     })
   }, [filteredData, sortKey])
 
+  const contradictedIds = useMemo(() => {
+    if (!data) return new Set<string>()
+    return new Set(
+      data.links.filter(l => l.relation === "contradicts").map(l => l.target as string)
+    )
+  }, [data])
+
   useEffect(() => {
     if (selectedId && filteredData && !filteredData.nodes.some(n => n.id === selectedId)) {
       setSelectedId(null)
@@ -78,77 +85,83 @@ export default function MemoriesPage() {
     <div className="flex h-full overflow-hidden">
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Search + filter + view toggle toolbar */}
-        <div className="flex items-center gap-3 px-4 py-2 border-b border-border shrink-0">
-          <Input
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            placeholder="Search memories…"
-            className="h-8 max-w-xs text-sm"
-          />
-          <div className="flex gap-1">
-            {(["all", "semantic", "episodic"] as TypeFilter[]).map(f => (
+        <div className="flex flex-col gap-1.5 px-4 py-2 border-b border-border shrink-0">
+          {/* Row 1: search + view toggles */}
+          <div className="flex items-center gap-2">
+            <Input
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Search memories…"
+              className="h-8 flex-1 text-sm"
+            />
+            <div className="flex gap-1 shrink-0">
               <button
-                key={f}
                 type="button"
-                onClick={() => setTypeFilter(f)}
-                aria-pressed={typeFilter === f}
-                className={`px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors ${
-                  typeFilter === f
+                onClick={() => setViewMode("graph")}
+                aria-label="Graph view"
+                aria-pressed={viewMode === "graph"}
+                className={`p-2 rounded transition-colors ${
+                  viewMode === "graph"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {f.charAt(0).toUpperCase() + f.slice(1)}
-                <Badge variant="secondary" className="h-4 px-1 text-[10px]">
-                  {counts[f]}
-                </Badge>
+                <Network className="h-4 w-4" />
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => setViewMode("list")}
+                aria-label="List view"
+                aria-pressed={viewMode === "list"}
+                className={`p-2 rounded transition-colors ${
+                  viewMode === "list"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <LayoutList className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-          {filteredData && filteredData.nodes.length !== data.nodes.length && (
-            <span className="text-xs text-muted-foreground">
-              {filteredData.nodes.length} of {data.nodes.length}
-            </span>
-          )}
-          {viewMode === "list" && (
-            <select
-              value={sortKey}
-              onChange={e => setSortKey(e.target.value as SortKey)}
-              className="ml-auto text-xs text-muted-foreground bg-transparent border border-border rounded px-2 py-1 cursor-pointer"
-              aria-label="Sort by"
-            >
-              {(Object.keys(SORT_LABELS) as SortKey[]).map(k => (
-                <option key={k} value={k}>{SORT_LABELS[k]}</option>
+          {/* Row 2: filter pills + count + sort */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex gap-1">
+              {(["all", "semantic", "episodic"] as TypeFilter[]).map(f => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setTypeFilter(f)}
+                  aria-pressed={typeFilter === f}
+                  className={`px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors ${
+                    typeFilter === f
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                  <Badge variant="secondary" className="h-4 px-1 text-[10px]">
+                    {counts[f]}
+                  </Badge>
+                </button>
               ))}
-            </select>
-          )}
-          <div className={`${viewMode === "list" ? "" : "ml-auto"} flex gap-1`}>
-            <button
-              type="button"
-              onClick={() => setViewMode("graph")}
-              aria-label="Graph view"
-              aria-pressed={viewMode === "graph"}
-              className={`p-1.5 rounded transition-colors ${
-                viewMode === "graph"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Network className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("list")}
-              aria-label="List view"
-              aria-pressed={viewMode === "list"}
-              className={`p-1.5 rounded transition-colors ${
-                viewMode === "list"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <LayoutList className="h-4 w-4" />
-            </button>
+            </div>
+            {filteredData && filteredData.nodes.length !== data.nodes.length && (
+              <span className="text-xs text-muted-foreground">
+                {filteredData.nodes.length} of {data.nodes.length}
+              </span>
+            )}
+            {viewMode === "list" && (
+              <select
+                value={sortKey}
+                onChange={e => setSortKey(e.target.value as SortKey)}
+                className="ml-auto text-xs text-muted-foreground bg-transparent border border-border rounded px-2 py-1 cursor-pointer"
+                aria-label="Sort by"
+              >
+                {(Object.keys(SORT_LABELS) as SortKey[]).map(k => (
+                  <option key={k} value={k}>{SORT_LABELS[k]}</option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
 
@@ -159,6 +172,7 @@ export default function MemoriesPage() {
               nodes={sortedNodes}
               selectedId={selectedId}
               onSelectNode={handleSelectNode}
+              contradictedIds={contradictedIds}
             />
           ) : filteredData && filteredData.nodes.length === 0 ? (
             <div className="flex h-full items-center justify-center text-muted-foreground text-sm">

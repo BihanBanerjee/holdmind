@@ -1,7 +1,8 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { CheckCircle, KeyRound, User } from "lucide-react"
+import { CheckCircle, KeyRound, Lock, User } from "lucide-react"
+import { motion } from "framer-motion"
 import { useAuth } from "@/lib/auth-context"
 import { toast } from "sonner"
 import { apiFetch } from "@/lib/api"
@@ -113,8 +114,16 @@ export default function SettingsPage() {
   }, [me])
 
   return (
-    <div className="max-w-xl mx-auto px-6 py-10">
-      <h1 className="text-2xl font-semibold mb-8">Settings</h1>
+    <motion.div
+      className="max-w-xl mx-auto px-6 py-10"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+    >
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold">Settings</h1>
+        <p className="text-sm text-muted-foreground mt-1">Manage your profile, security, and API access.</p>
+      </div>
 
       <Card className="mb-6">
         <CardHeader>
@@ -162,7 +171,7 @@ export default function SettingsPage() {
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <KeyRound className="h-5 w-5" />
+            <Lock className="h-5 w-5" />
             Change Password
           </CardTitle>
           <CardDescription>
@@ -344,6 +353,6 @@ export default function SettingsPage() {
           </AlertDialog>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   )
 }
