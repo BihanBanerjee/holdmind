@@ -111,7 +111,7 @@ export function PreviewGraph() {
         ctx.beginPath()
         ctx.strokeStyle = EDGE_COLOR[edge.type] + "99"
         ctx.lineWidth = 1.5
-        if (edge.type === "contradicts") {
+        if (edge.type === "derives") {
           ctx.setLineDash([4, 3])
         } else {
           ctx.setLineDash([])

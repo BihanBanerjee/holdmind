@@ -162,11 +162,46 @@ function BeliefGraphSection() {
             node — your beliefs are interactive, explorable, and alive.
           </p>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Nodes fade with age. Edges carry meaning — green for support, red for contradiction.
+            Green edges support. Red edges contradict. Dashed edges derive. The graph evolves with every conversation.
           </p>
         </div>
-        <div className="border border-border rounded-2xl bg-[#0d0d0d] overflow-hidden h-72">
-          <PreviewGraph />
+        <div className="flex flex-col gap-3">
+          <div className="border border-border rounded-2xl bg-[#0d0d0d] overflow-hidden h-72">
+            <PreviewGraph />
+          </div>
+          {/* Legend */}
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5 px-1 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-[#3b82f6]" />
+              Semantic
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-[#a855f7]" />
+              Episodic
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-[#14b8a6]" />
+              Procedural
+            </span>
+            <span className="flex items-center gap-1.5">
+              <svg width="16" height="4" className="shrink-0">
+                <line x1="0" y1="2" x2="16" y2="2" stroke="#22c55e" strokeWidth="1.5" />
+              </svg>
+              Supports
+            </span>
+            <span className="flex items-center gap-1.5">
+              <svg width="16" height="4" className="shrink-0">
+                <line x1="0" y1="2" x2="16" y2="2" stroke="#ef4444" strokeWidth="1.5" />
+              </svg>
+              Contradicts
+            </span>
+            <span className="flex items-center gap-1.5">
+              <svg width="16" height="4" className="shrink-0">
+                <line x1="0" y1="2" x2="16" y2="2" stroke="#9ca3af" strokeWidth="1.5" strokeDasharray="3,3" />
+              </svg>
+              Derives
+            </span>
+          </div>
         </div>
       </div>
     </section>
