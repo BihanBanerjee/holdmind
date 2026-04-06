@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Copy, Check, ThumbsUp, ThumbsDown, RefreshCw } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import type { Claim } from "@/hooks/useChat"
 
 interface Props {
@@ -67,13 +69,42 @@ export function MessageBubble({ role, content, highlight, isLast, onRegenerate, 
       transition={animate ? { duration: 0.3, ease: "easeOut" } : undefined}
     >
       <div
-        className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap ${
+        className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
           isUser
-            ? "bg-primary text-primary-foreground rounded-br-sm"
+            ? "bg-primary text-primary-foreground rounded-br-sm whitespace-pre-wrap"
             : `bg-muted text-foreground rounded-bl-sm${showClaims ? " border-l-2 border-primary/30" : ""}`
         }`}
       >
-        {renderContent()}
+        {isUser ? renderContent() : (
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+              code: ({ children, className }) => {
+                const isBlock = !!className
+                return isBlock ? (
+                  <code className="block bg-background/60 rounded-md px-3 py-2 my-2 text-xs font-mono overflow-x-auto whitespace-pre">{children}</code>
+                ) : (
+                  <code className="bg-background/60 rounded px-1 py-0.5 text-xs font-mono">{children}</code>
+                )
+              },
+              pre: ({ children }) => <pre className="my-2">{children}</pre>,
+              ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
+              li: ({ children }) => <li className="text-sm">{children}</li>,
+              strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+              em: ({ children }) => <em className="italic">{children}</em>,
+              h1: ({ children }) => <h1 className="text-base font-semibold mb-1 mt-2">{children}</h1>,
+              h2: ({ children }) => <h2 className="text-sm font-semibold mb-1 mt-2">{children}</h2>,
+              h3: ({ children }) => <h3 className="text-sm font-medium mb-1 mt-2">{children}</h3>,
+              a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">{children}</a>,
+              blockquote: ({ children }) => <blockquote className="border-l-2 border-muted-foreground/40 pl-3 italic my-2 text-muted-foreground">{children}</blockquote>,
+              hr: () => <hr className="my-2 border-muted-foreground/20" />,
+            }}
+          >
+            {content}
+          </ReactMarkdown>
+        )}
       </div>
 
       {!isUser && (
