@@ -1,6 +1,7 @@
 "use client"
-import { use } from "react"
+import { use, useEffect, useRef } from "react"
 import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { MessageList } from "@/components/chat/MessageList"
 import { ChatInput } from "@/components/chat/ChatInput"
 import { ClaimsPanel } from "@/components/chat/ClaimsPanel"
@@ -15,6 +16,18 @@ export default function ChatPage({ params }: Props) {
   const { id } = use(params)
   const { send, isStreaming, streamingContent, claims, pendingUserMessage } = useChat(id)
   const [searchQuery, setSearchQuery] = useState<string | undefined>()
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const autoSentRef = useRef(false)
+
+  useEffect(() => {
+    const prompt = searchParams.get("prompt")
+    if (prompt && !autoSentRef.current) {
+      autoSentRef.current = true
+      send(prompt)
+      router.replace(`/chat/${id}`)
+    }
+  }, [searchParams, id, send, router])
 
   return (
     <div className="flex flex-col h-full">
