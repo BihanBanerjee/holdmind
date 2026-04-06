@@ -70,7 +70,7 @@ export function MessageBubble({ role, content, highlight, isLast, onRegenerate, 
         className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap ${
           isUser
             ? "bg-primary text-primary-foreground rounded-br-sm"
-            : "bg-muted text-foreground rounded-bl-sm"
+            : `bg-muted text-foreground rounded-bl-sm${showClaims ? " border-l-2 border-primary/30" : ""}`
         }`}
       >
         {renderContent()}
@@ -125,7 +125,7 @@ export function MessageBubble({ role, content, highlight, isLast, onRegenerate, 
               className={`text-[10px] h-5 gap-1 ${
                 c.type === "semantic"
                   ? "border-blue-300 text-blue-600 dark:border-blue-700 dark:text-blue-400"
-                  : "border-purple-300 text-purple-600 dark:border-purple-700 dark:text-purple-400"
+                  : "border-amber-300 text-amber-600 dark:border-amber-700 dark:text-amber-400"
               }`}
             >
               <span className="font-medium">{c.type}</span>

@@ -29,7 +29,7 @@ function linkWidth(relation: string): number {
 }
 
 function nodeColor(node: SimNode): string {
-  const baseColor = node.type === "semantic" ? "#3b82f6" : "#a855f7"
+  const baseColor = node.type === "semantic" ? "#3b82f6" : "#f59e0b"
   const staleColor = "#94a3b8"
   const nowSec = Date.now() / 1000
   const ageDays = (nowSec - node.created_at) / 86400
