@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react"
 
 type EdgeType = "supports" | "contradicts" | "derives"
-type NodeType = "semantic" | "episodic" | "procedural"
+type NodeType = "semantic" | "episodic"
 
 interface PNode {
   id: string
@@ -25,7 +25,6 @@ interface PEdge {
 const NODE_COLOR: Record<NodeType, string> = {
   semantic: "#3b82f6",
   episodic: "#a855f7",
-  procedural: "#14b8a6",
 }
 
 const EDGE_COLOR: Record<EdgeType, string> = {
@@ -39,12 +38,12 @@ const INITIAL_NODES: Omit<PNode, "x" | "y" | "vx" | "vy">[] = [
   { id: "2", label: "Python preferred", type: "semantic", confidence: 0.9 },
   { id: "3", label: "remote work suits me", type: "semantic", confidence: 0.85 },
   { id: "4", label: "debugged FastAPI", type: "episodic", confidence: 0.75 },
-  { id: "5", label: "reach for rubber duck", type: "procedural", confidence: 0.8 },
+  { id: "5", label: "reach for rubber duck", type: "episodic", confidence: 0.8 },
   { id: "6", label: "prefer dark mode", type: "semantic", confidence: 0.9 },
   { id: "7", label: "visited Tokyo", type: "episodic", confidence: 0.7 },
   { id: "8", label: "TypeScript skilled", type: "semantic", confidence: 0.88 },
-  { id: "9", label: "morning coder", type: "procedural", confidence: 0.72 },
-  { id: "10", label: "reads daily", type: "procedural", confidence: 0.65 },
+  { id: "9", label: "morning coder", type: "episodic", confidence: 0.72 },
+  { id: "10", label: "reads daily", type: "semantic", confidence: 0.65 },
 ]
 
 const EDGES: PEdge[] = [

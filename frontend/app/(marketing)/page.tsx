@@ -112,7 +112,7 @@ const STEPS = [
   {
     num: "03",
     title: "Graph grows",
-    desc: "Beliefs connect with typed edges: supports, contradicts, derives. Contradictions tracked, not hidden.",
+    desc: "Beliefs connect with typed edges: supports, contradicts, derives. Contradictions tracked, confidence updated automatically.",
   },
   {
     num: "04",
@@ -180,10 +180,6 @@ function BeliefGraphSection() {
               Episodic
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="inline-block w-2 h-2 rounded-full bg-[#14b8a6]" />
-              Procedural
-            </span>
-            <span className="flex items-center gap-1.5">
               <svg width="16" height="4" className="shrink-0">
                 <line x1="0" y1="2" x2="16" y2="2" stroke="#22c55e" strokeWidth="1.5" />
               </svg>
@@ -226,14 +222,6 @@ const MEMORY_TYPES = [
     bg: "bg-purple-500/5",
     border: "border-purple-500/20",
   },
-  {
-    color: "#14b8a6",
-    title: "Procedural",
-    desc: "Habits and patterns. 'When I'm stuck, I reach for a rubber duck.' Detected from recurring behaviour and surfaced as triggers.",
-    tag: "Behavioural · Pattern",
-    bg: "bg-teal-500/5",
-    border: "border-teal-500/20",
-  },
 ]
 
 function MemoryTypes() {
@@ -243,12 +231,12 @@ function MemoryTypes() {
         <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-4">
           Memory Types
         </p>
-        <h2 className="text-3xl font-bold tracking-tight mb-4">Three kinds of knowing</h2>
+        <h2 className="text-3xl font-bold tracking-tight mb-4">Two kinds of knowing</h2>
         <p className="text-muted-foreground mb-12 max-w-2xl">
-          Not all memory is the same. Holdmind distinguishes facts from experiences from habits
-          — and stores each accordingly.
+          Not all memory is the same. Holdmind distinguishes stable facts from time-bound
+          experiences — and stores each accordingly.
         </p>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {MEMORY_TYPES.map((m) => (
             <div
               key={m.title}
