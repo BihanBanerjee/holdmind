@@ -114,6 +114,7 @@ export default function SettingsPage() {
   }, [me])
 
   return (
+    <div className="h-full overflow-y-auto">
     <motion.div
       className="max-w-xl mx-auto px-6 py-10"
       initial={{ opacity: 0, y: 16 }}
@@ -354,5 +355,6 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
     </motion.div>
+    </div>
   )
 }
