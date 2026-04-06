@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useMessages, type Message } from "@/hooks/useMessages"
 import { MessageBubble } from "./MessageBubble"
+import { ThinkingBubble } from "./ThinkingBubble"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface Props {
@@ -19,11 +20,13 @@ export function MessageList({ conversationId, streamingContent, pendingUserMessa
   // null = not yet initialized (waiting for first fetch to compute starting offset)
   const [lowestOffset, setLowestOffset] = useState<number | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
+  const initialMessageCountRef = useRef<number | null>(null)
 
   // Reset when conversation or search changes
   useEffect(() => {
     setLowestOffset(null)
     setMessages([])
+    initialMessageCountRef.current = null
   }, [conversationId, searchQuery])
 
   // Use null offset for the initial probe fetch (offset=0 to get total)
@@ -40,6 +43,9 @@ export function MessageList({ conversationId, streamingContent, pendingUserMessa
         // All messages fit in one page — just show them
         setMessages(data.items)
         setLowestOffset(0)
+        if (initialMessageCountRef.current === null) {
+          initialMessageCountRef.current = data.items.length
+        }
       } else {
         // Jump to the latest page (will trigger another fetch)
         setLowestOffset(startOffset)
@@ -56,9 +62,17 @@ export function MessageList({ conversationId, streamingContent, pendingUserMessa
         if (prev.length > 0 && data.items.some(m => m.id === prev[prev.length - 1].id)) {
           return [...prev.filter(m => !data.items.find(d => d.id === m.id)), ...data.items]
         }
-        return fetchOffset < (lowestOffset ?? 0)
-          ? [...data.items, ...prev]   // prepend (loading older)
-          : data.items                  // replace (initial latest page)
+        const isLoadEarlier = fetchOffset < (lowestOffset ?? 0)
+        if (isLoadEarlier) {
+          if (initialMessageCountRef.current !== null) {
+            initialMessageCountRef.current += data.items.length
+          }
+          return [...data.items, ...prev]
+        }
+        if (initialMessageCountRef.current === null) {
+          initialMessageCountRef.current = data.items.length
+        }
+        return data.items
       })
     }
   }, [data]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -68,9 +82,11 @@ export function MessageList({ conversationId, streamingContent, pendingUserMessa
     if (!searchQuery) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" })
     }
-  }, [messages, streamingContent, searchQuery])
+  }, [messages, streamingContent, pendingUserMessage, searchQuery])
 
   const canLoadEarlier = lowestOffset !== null && lowestOffset > 0
+  const isThinking = !!pendingUserMessage && !streamingContent
+  const initialCount = initialMessageCountRef.current ?? messages.length
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-4">
@@ -110,6 +126,7 @@ export function MessageList({ conversationId, streamingContent, pendingUserMessa
             highlight={searchQuery}
             isLast={i === lastAssistantIdx}
             claims={msg.claims ?? undefined}
+            animate={i >= initialCount && msg.role === "user"}
             onRegenerate={
               i === lastAssistantIdx && lastUserMsg && onRegenerate
                 ? () => onRegenerate(lastUserMsg)
@@ -120,8 +137,10 @@ export function MessageList({ conversationId, streamingContent, pendingUserMessa
       })()}
 
       {pendingUserMessage && (
-        <MessageBubble role="user" content={pendingUserMessage} />
+        <MessageBubble role="user" content={pendingUserMessage} animate />
       )}
+
+      {isThinking && <ThinkingBubble />}
 
       {streamingContent && (
         <MessageBubble role="assistant" content={streamingContent} />
