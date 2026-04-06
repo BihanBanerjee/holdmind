@@ -22,7 +22,7 @@ def list_conversations(
     offset: int = 0,
     archived: bool = False,
     q: str | None = None,
-) -> tuple[list[Conversation], int]:
+) -> tuple[list[dict], int]:
     query = (
         db.query(Conversation)
         .filter(Conversation.user_id == user_id, Conversation.archived == archived)
@@ -31,8 +31,36 @@ def list_conversations(
     if q:
         query = query.filter(Conversation.title.ilike(f"%{q}%"))
     total = query.count()
-    items = query.limit(limit).offset(offset).all()
-    return items, total
+    convs = query.limit(limit).offset(offset).all()
+
+    # Fetch the latest assistant message for each conversation in one query
+    conv_ids = [c.id for c in convs]
+    last_messages: dict[str, tuple[str, object]] = {}
+    if conv_ids:
+        rows = (
+            db.query(ChatMessage.conversation_id, ChatMessage.content, ChatMessage.created_at)
+            .filter(ChatMessage.conversation_id.in_(conv_ids), ChatMessage.role == "assistant")
+            .order_by(ChatMessage.conversation_id, ChatMessage.created_at.desc())
+            .all()
+        )
+        seen: set[str] = set()
+        for row in rows:
+            if row.conversation_id not in seen:
+                seen.add(row.conversation_id)
+                last_messages[row.conversation_id] = (row.content, row.created_at)
+
+    result = []
+    for conv in convs:
+        preview, updated_at = last_messages.get(conv.id, (None, conv.created_at))
+        result.append({
+            "id": conv.id,
+            "title": conv.title,
+            "archived": conv.archived,
+            "created_at": conv.created_at,
+            "last_message_preview": preview[:120] if preview else None,
+            "updated_at": updated_at,
+        })
+    return result, total
 
 
 def get_conversation(db: Session, conversation_id: str, user_id: str) -> Conversation | None:

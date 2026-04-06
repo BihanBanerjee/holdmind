@@ -34,6 +34,8 @@ class ConversationResponse(BaseModel):
     title: str
     archived: bool
     created_at: datetime | None
+    last_message_preview: str | None = None
+    updated_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 

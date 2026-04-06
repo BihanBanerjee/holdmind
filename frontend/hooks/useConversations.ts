@@ -6,6 +6,8 @@ export interface Conversation {
   title: string
   archived: boolean
   created_at: string
+  last_message_preview: string | null
+  updated_at: string | null
 }
 
 export interface PaginatedConversations {

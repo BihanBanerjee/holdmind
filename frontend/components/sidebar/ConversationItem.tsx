@@ -22,6 +22,21 @@ import {
 import type { Conversation } from "@/hooks/useConversations"
 import { usePatchConversation, useDeleteConversation } from "@/hooks/useConversations"
 
+function formatRelativeTime(dateStr: string | null): string {
+  if (!dateStr) return ""
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return "just now"
+  if (mins < 60) return `${mins}m`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h`
+  const days = Math.floor(hrs / 24)
+  if (days < 7) return `${days}d`
+  const weeks = Math.floor(days / 7)
+  if (weeks < 5) return `${weeks}w`
+  return new Date(dateStr).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+}
+
 interface Props {
   conversation: Conversation
   onNavigate?: () => void
@@ -87,7 +102,21 @@ export function ConversationItem({ conversation, onNavigate }: Props) {
             className="flex-1 bg-transparent outline-none border-b border-primary text-sm"
           />
         ) : (
-          <span className="flex-1 truncate">{conversation.title}</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-baseline justify-between gap-1">
+              <span className="truncate text-sm">{conversation.title}</span>
+              {conversation.updated_at && (
+                <span className="shrink-0 text-[10px] text-muted-foreground">
+                  {formatRelativeTime(conversation.updated_at)}
+                </span>
+              )}
+            </div>
+            {conversation.last_message_preview && (
+              <p className="truncate text-[11px] text-muted-foreground leading-tight mt-0.5">
+                {conversation.last_message_preview}
+              </p>
+            )}
+          </div>
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
