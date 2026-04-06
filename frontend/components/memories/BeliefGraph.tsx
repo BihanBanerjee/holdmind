@@ -151,6 +151,15 @@ export function BeliefGraph({ data, selectedId, onSelectNode }: Props) {
         if (touchTimerRef.current) clearTimeout(touchTimerRef.current)
         setTooltip(null)
       })
+      .on("mouseover", (e: MouseEvent, d) => {
+        const rect = el.getBoundingClientRect()
+        setTooltip({
+          label: d.label,
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top - 48,
+        })
+      })
+      .on("mouseout", () => setTooltip(null))
       .call(
         d3
           .drag<SVGCircleElement, SimNode>()
