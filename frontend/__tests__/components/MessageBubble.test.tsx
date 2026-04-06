@@ -160,3 +160,30 @@ describe("MessageBubble — claim annotations", () => {
     expect(screen.queryByText("sky is blue")).not.toBeInTheDocument()
   })
 })
+
+describe("MessageBubble — entrance animation", () => {
+  it("renders a motion.div wrapper when animate=true", () => {
+    const { container } = render(
+      <MessageBubble role="assistant" content="Hi" animate />,
+    )
+    // framer-motion renders a div with style that includes opacity and transform
+    const outerDiv = container.firstChild as HTMLElement
+    expect(outerDiv.style.opacity).toBeDefined()
+  })
+
+  it("renders without motion animation when animate=false", () => {
+    const { container } = render(
+      <MessageBubble role="assistant" content="Hi" animate={false} />,
+    )
+    const outerDiv = container.firstChild as HTMLElement
+    expect(outerDiv).toHaveClass("items-start")
+  })
+
+  it("defaults animate to false when prop is omitted", () => {
+    const { container } = render(
+      <MessageBubble role="assistant" content="Hi" />,
+    )
+    const outerDiv = container.firstChild as HTMLElement
+    expect(outerDiv).toHaveClass("items-start")
+  })
+})

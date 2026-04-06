@@ -1,5 +1,6 @@
 "use client"
 import { useState, useRef, useEffect } from "react"
+import { motion } from "framer-motion"
 import { Copy, Check, ThumbsUp, ThumbsDown, RefreshCw } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import type { Claim } from "@/hooks/useChat"
@@ -11,9 +12,10 @@ interface Props {
   isLast?: boolean
   onRegenerate?: () => void
   claims?: Claim[]
+  animate?: boolean
 }
 
-export function MessageBubble({ role, content, highlight, isLast, onRegenerate, claims }: Props) {
+export function MessageBubble({ role, content, highlight, isLast, onRegenerate, claims, animate = false }: Props) {
   const isUser = role === "user"
   const [copied, setCopied] = useState(false)
   const [thumbUp, setThumbUp] = useState(false)
@@ -58,7 +60,12 @@ export function MessageBubble({ role, content, highlight, isLast, onRegenerate, 
   const showClaims = !isUser && claims && claims.length > 0
 
   return (
-    <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} mb-3`}>
+    <motion.div
+      className={`flex flex-col ${isUser ? "items-end" : "items-start"} mb-3`}
+      initial={animate ? { opacity: 0, y: 8 } : false}
+      animate={animate ? { opacity: 1, y: 0 } : undefined}
+      transition={animate ? { duration: 0.3, ease: "easeOut" } : undefined}
+    >
       <div
         className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap ${
           isUser
@@ -127,6 +134,6 @@ export function MessageBubble({ role, content, highlight, isLast, onRegenerate, 
           ))}
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
