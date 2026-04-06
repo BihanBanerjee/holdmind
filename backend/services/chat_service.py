@@ -22,12 +22,20 @@ def claim_to_text(claim: Claim) -> str:
 
 def build_system_prompt(relevant_claims: list[Claim], patterns: dict | None = None) -> str:
     """Build the system prompt with optional memory context and user style patterns."""
+    preamble = (
+        "CRITICAL RULE: Your responses must contain ONLY natural conversational text. "
+        "NEVER include XML tags, memory operations, internal formatting, or structured data "
+        "like <memory_update>, <add>, <delete>, <remove>, or similar in your responses. "
+        "Memory management happens automatically behind the scenes — do not reference it.\n\n"
+    )
+
     if relevant_claims:
         memory_lines = "\n".join(
             f"- [{c.type}] {claim_to_text(c)}" for c in relevant_claims
         )
         base = (
-            "You are Holdmind, a helpful AI assistant with persistent memory.\n\n"
+            preamble
+            + "You are Holdmind, a helpful AI assistant with persistent memory.\n\n"
             "You know the following about this user:\n"
             f"{memory_lines}\n\n"
             "Use this context naturally in your responses when relevant. "
@@ -35,7 +43,8 @@ def build_system_prompt(relevant_claims: list[Claim], patterns: dict | None = No
         )
     else:
         base = (
-            "You are Holdmind, a helpful AI assistant. "
+            preamble
+            + "You are Holdmind, a helpful AI assistant. "
             "You will store things the user tells you over time."
         )
 
