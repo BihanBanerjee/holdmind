@@ -1,5 +1,6 @@
 "use client"
-import { X } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { X, Pencil, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -15,7 +16,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
-import { useClaimDetail, useDeleteClaim } from "@/hooks/useMemories"
+import { useClaimDetail, useDeleteClaim, usePatchClaim } from "@/hooks/useMemories"
 import type { GraphNode } from "@/hooks/useMemories"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -29,6 +30,36 @@ interface Props {
 export function ClaimDetail({ claimId, allNodes, onSelectNode, onClose }: Props) {
   const { data, isLoading } = useClaimDetail(claimId)
   const { mutate: deleteClaim } = useDeleteClaim()
+  const { mutate: patchClaim, isPending: isSaving } = usePatchClaim()
+  const [editing, setEditing] = useState(false)
+  const [editLabel, setEditLabel] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (data) setEditLabel(data.label)
+    setEditing(false)
+  }, [claimId, data])
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus()
+  }, [editing])
+
+  function commitEdit() {
+    const trimmed = editLabel.trim()
+    if (!trimmed || trimmed === data?.label) { setEditing(false); return }
+    patchClaim(
+      { id: claimId, label: trimmed },
+      {
+        onSuccess: () => { setEditing(false); toast.success("Memory updated") },
+        onError: () => toast.error("Failed to update memory"),
+      },
+    )
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter") commitEdit()
+    if (e.key === "Escape") { setEditLabel(data?.label ?? ""); setEditing(false) }
+  }
 
   function labelFor(id: string) {
     return allNodes.find(n => n.id === id)?.label ?? id.slice(0, 8)
@@ -57,7 +88,42 @@ export function ClaimDetail({ claimId, allNodes, onSelectNode, onClose }: Props)
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
           <div>
             <Badge className="mb-2 capitalize">{data.type}</Badge>
-            <p className="text-sm font-medium leading-snug">{data.label}</p>
+            <div className="flex items-start gap-1 group/label">
+              {editing ? (
+                <>
+                  <input
+                    ref={inputRef}
+                    value={editLabel}
+                    onChange={e => setEditLabel(e.target.value)}
+                    onBlur={commitEdit}
+                    onKeyDown={handleKeyDown}
+                    disabled={isSaving}
+                    className="flex-1 text-sm font-medium leading-snug bg-transparent border-b border-primary outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={commitEdit}
+                    disabled={isSaving}
+                    className="shrink-0 p-0.5 text-primary"
+                    aria-label="Save label"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="flex-1 text-sm font-medium leading-snug">{data.label}</p>
+                  <button
+                    type="button"
+                    onClick={() => setEditing(true)}
+                    className="shrink-0 p-0.5 text-muted-foreground opacity-0 group-hover/label:opacity-100 transition-opacity"
+                    aria-label="Edit label"
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                </>
+              )}
+            </div>
             <button
               type="button"
               onClick={() =>

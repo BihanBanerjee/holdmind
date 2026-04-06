@@ -31,6 +31,10 @@ class ConfidenceEventResponse(BaseModel):
     timestamp: float
 
 
+class ClaimPatchRequest(BaseModel):
+    label: str
+
+
 class ClaimDetailResponse(BaseModel):
     id: str
     type: str

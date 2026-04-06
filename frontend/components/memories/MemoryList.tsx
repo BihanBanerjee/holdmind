@@ -10,9 +10,7 @@ interface Props {
 }
 
 export function MemoryList({ nodes, selectedId, onSelectNode }: Props) {
-  const sorted = [...nodes].sort((a, b) => b.confidence - a.confidence)
-
-  if (sorted.length === 0) {
+  if (nodes.length === 0) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
         No memories match your filter.
@@ -22,7 +20,7 @@ export function MemoryList({ nodes, selectedId, onSelectNode }: Props) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 overflow-y-auto content-start">
-      {sorted.map(node => (
+      {nodes.map(node => (
         <button
           key={node.id}
           type="button"

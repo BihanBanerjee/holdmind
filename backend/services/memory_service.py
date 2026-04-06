@@ -56,6 +56,51 @@ def get_graph_data(store: MemoryStore) -> dict:
     return build_graph_data(claims, edges)
 
 
+def patch_claim(store: MemoryStore, claim_id: str, new_label: str) -> ClaimDetailResponse | None:
+    """Update a claim's label. For semantic claims, updates the object field.
+    For episodic claims, updates the summary."""
+    claim = store.get(claim_id)
+    if claim is None:
+        return None
+
+    new_label = new_label.strip()
+    if not new_label:
+        return None
+
+    if isinstance(claim, SemanticClaim):
+        # Strip "subject predicate " prefix if the user typed the full triple
+        prefix = f"{claim.subject} {claim.predicate} "
+        new_object = new_label[len(prefix):] if new_label.lower().startswith(prefix.lower()) else new_label
+        updated: Claim = SemanticClaim(
+            id=claim.id,
+            subject=claim.subject,
+            predicate=claim.predicate,
+            object=new_object,
+            confidence=claim.confidence,
+            importance=claim.importance,
+            evidence=claim.evidence,
+            support_count=claim.support_count,
+            created_at=claim.created_at,
+            last_reinforced_at=claim.last_reinforced_at,
+        )
+    elif isinstance(claim, EpisodicClaim):
+        updated = EpisodicClaim(
+            id=claim.id,
+            summary=new_label,
+            confidence=claim.confidence,
+            importance=claim.importance,
+            evidence=claim.evidence,
+            support_count=claim.support_count,
+            created_at=claim.created_at,
+            last_reinforced_at=claim.last_reinforced_at,
+        )
+    else:
+        return None
+
+    store.update(updated)
+    return get_claim_detail(store, claim_id)
+
+
 def get_claim_detail(store: MemoryStore, claim_id: str) -> ClaimDetailResponse | None:
     claim = store.get(claim_id)
     if claim is None:

@@ -58,6 +58,21 @@ export function useClaimDetail(claimId: string | null) {
   })
 }
 
+export function usePatchClaim() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, label }: { id: string; label: string }) =>
+      apiFetch<ClaimDetail>(`/api/memories/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ label }),
+      }),
+    onSuccess: (data, { id }) => {
+      qc.setQueryData(["memory", id], data)
+      qc.invalidateQueries({ queryKey: ["memories"] })
+    },
+  })
+}
+
 export function useDeleteClaim() {
   const qc = useQueryClient()
   return useMutation({

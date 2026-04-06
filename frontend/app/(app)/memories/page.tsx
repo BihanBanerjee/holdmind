@@ -10,6 +10,14 @@ import { Badge } from "@/components/ui/badge"
 import { filterMemories, type TypeFilter } from "@/lib/filterMemories"
 
 type ViewMode = "graph" | "list"
+type SortKey = "confidence" | "importance" | "newest" | "oldest"
+
+const SORT_LABELS: Record<SortKey, string> = {
+  confidence: "Confidence",
+  importance: "Importance",
+  newest: "Newest",
+  oldest: "Oldest",
+}
 
 export default function MemoriesPage() {
   const { data, isLoading } = useMemoryGraph()
@@ -17,6 +25,7 @@ export default function MemoriesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all")
   const [viewMode, setViewMode] = useState<ViewMode>("graph")
+  const [sortKey, setSortKey] = useState<SortKey>("confidence")
   const handleSelectNode = useCallback((id: string) => setSelectedId(id), [])
 
   const counts = useMemo(() => {
@@ -32,6 +41,16 @@ export default function MemoriesPage() {
     () => (data ? filterMemories(data, typeFilter, searchTerm) : null),
     [data, typeFilter, searchTerm],
   )
+
+  const sortedNodes = useMemo(() => {
+    if (!filteredData) return []
+    return [...filteredData.nodes].sort((a, b) => {
+      if (sortKey === "confidence") return b.confidence - a.confidence
+      if (sortKey === "importance") return b.importance - a.importance
+      if (sortKey === "newest") return b.created_at - a.created_at
+      return a.created_at - b.created_at // oldest
+    })
+  }, [filteredData, sortKey])
 
   useEffect(() => {
     if (selectedId && filteredData && !filteredData.nodes.some(n => n.id === selectedId)) {
@@ -91,7 +110,19 @@ export default function MemoriesPage() {
               {filteredData.nodes.length} of {data.nodes.length}
             </span>
           )}
-          <div className="ml-auto flex gap-1">
+          {viewMode === "list" && (
+            <select
+              value={sortKey}
+              onChange={e => setSortKey(e.target.value as SortKey)}
+              className="ml-auto text-xs text-muted-foreground bg-transparent border border-border rounded px-2 py-1 cursor-pointer"
+              aria-label="Sort by"
+            >
+              {(Object.keys(SORT_LABELS) as SortKey[]).map(k => (
+                <option key={k} value={k}>{SORT_LABELS[k]}</option>
+              ))}
+            </select>
+          )}
+          <div className={`${viewMode === "list" ? "" : "ml-auto"} flex gap-1`}>
             <button
               type="button"
               onClick={() => setViewMode("graph")}
@@ -125,7 +156,7 @@ export default function MemoriesPage() {
         <div className="flex-1 relative overflow-hidden">
           {viewMode === "list" ? (
             <MemoryList
-              nodes={filteredData!.nodes}
+              nodes={sortedNodes}
               selectedId={selectedId}
               onSelectNode={handleSelectNode}
             />

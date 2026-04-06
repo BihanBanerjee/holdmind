@@ -17,12 +17,13 @@ describe("MemoryList", () => {
     expect(screen.getByText("water is wet")).toBeInTheDocument()
   })
 
-  it("sorts nodes by confidence descending", () => {
-    render(<MemoryList nodes={nodes} selectedId={null} onSelectNode={() => {}} />)
+  it("renders nodes in the order provided by the caller", () => {
+    const ordered = [nodes[1], nodes[2], nodes[0]] // visited Paris, water is wet, sky is blue
+    render(<MemoryList nodes={ordered} selectedId={null} onSelectNode={() => {}} />)
     const cards = screen.getAllByRole("button")
-    expect(cards[0]).toHaveTextContent("sky is blue")    // 0.9
-    expect(cards[1]).toHaveTextContent("water is wet")   // 0.7
-    expect(cards[2]).toHaveTextContent("visited Paris")  // 0.5
+    expect(cards[0]).toHaveTextContent("visited Paris")
+    expect(cards[1]).toHaveTextContent("water is wet")
+    expect(cards[2]).toHaveTextContent("sky is blue")
   })
 
   it("calls onSelectNode with node id when card is clicked", () => {
