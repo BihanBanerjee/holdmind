@@ -185,11 +185,17 @@ export default function MemoriesPage() {
                 selectedId={selectedId}
                 onSelectNode={handleSelectNode}
               />
-              <div className="absolute bottom-4 left-4 flex gap-3 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm rounded-md px-3 py-2">
+              <div className="absolute bottom-4 left-4 flex flex-wrap gap-3 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm rounded-md px-3 py-2">
                 <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-blue-500" /> Semantic</span>
                 <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-amber-500" /> Episodic</span>
                 <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 bg-green-500" /> Supports</span>
                 <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 bg-red-500" /> Contradicts</span>
+                <span className="flex items-center gap-1">
+                  <svg width="16" height="4" className="shrink-0">
+                    <line x1="0" y1="2" x2="16" y2="2" stroke="#6b7280" strokeWidth="1.5" strokeDasharray="3,3" />
+                  </svg>
+                  Similar
+                </span>
               </div>
             </>
           )}
