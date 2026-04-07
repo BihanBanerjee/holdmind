@@ -18,7 +18,7 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "python-jose[cryptography]>=3.5.0",
     "qdrant-client<1.13",
-    "recollectx",
+    "recollectx>=0.2.7",
     "slowapi>=0.1.9",
     "sqlalchemy>=2.0.48",
     "uvicorn[standard]>=0.42.0",
@@ -30,8 +30,6 @@ dev = [
     "pytest-asyncio>=1.3.0",
 ]
 
-[tool.uv.sources]
-recollectx = { path = "../../re-collect(mine)", editable = true }
 
 [tool.pytest.ini_options]
 markers = ["integration: requires live OpenRouter + Qdrant (slow, has cost)"]
