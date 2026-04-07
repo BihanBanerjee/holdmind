@@ -49,3 +49,4 @@ app.include_router(settings_router)
 @limiter.limit("200/minute")
 def health(request: Request):
     return {"status": "ok"}
+
