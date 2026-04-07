@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { Brain, Settings, LogOut, Sun, Moon, Menu } from "lucide-react"
 import { useTheme } from "next-themes"
+import Image from "next/image"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { NewChatButton } from "./NewChatButton"
@@ -25,7 +26,10 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex flex-col h-full w-60 border-r border-border bg-background">
       <div className="p-4 border-b border-border shrink-0">
-        <span className="font-semibold text-lg tracking-tight">Holdmind</span>
+        <div className="flex items-center gap-2">
+          <Image src="/logo.png" alt="Holdmind" width={32} height={32} className="rounded-sm" />
+          <span className="font-semibold text-lg tracking-tight">Holdmind</span>
+        </div>
       </div>
       <div className="p-2 shrink-0">
         <NewChatButton />
@@ -92,7 +96,10 @@ export function Sidebar() {
             <SidebarContent onNavigate={() => setOpen(false)} />
           </SheetContent>
         </Sheet>
-        <span className="ml-3 font-semibold">Holdmind</span>
+        <div className="ml-3 flex items-center gap-2">
+          <Image src="/logo.png" alt="Holdmind" width={22} height={22} className="rounded-sm" />
+          <span className="font-semibold">Holdmind</span>
+        </div>
       </div>
     </>
   )

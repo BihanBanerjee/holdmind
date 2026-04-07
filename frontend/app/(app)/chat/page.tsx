@@ -1,5 +1,6 @@
 "use client"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { useConversations, useCreateConversation } from "@/hooks/useConversations"
 
 const PROMPTS = [
@@ -29,16 +30,19 @@ export default function ChatIndexPage() {
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-6 px-4">
-      <div className="text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Holdmind</h1>
-        <p className="mt-1 text-muted-foreground">What&apos;s on your mind?</p>
+      <div className="text-center flex flex-col items-center gap-3">
+        <Image src="/logo.png" alt="Holdmind" width={56} height={56} className="rounded-xl" />
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Holdmind</h1>
+          <p className="mt-1 text-muted-foreground">What&apos;s on your mind?</p>
+        </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 w-full max-w-md">
         {PROMPTS.map((prompt) => (
           <button
             key={prompt}
             onClick={() => handlePrompt(prompt)}
-            className="rounded-full border border-border px-4 py-2 text-sm hover:bg-accent transition-colors"
+            className="rounded-full border border-border px-4 py-2.5 text-sm hover:bg-accent transition-colors text-center"
           >
             {prompt}
           </button>

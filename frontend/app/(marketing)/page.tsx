@@ -1,6 +1,7 @@
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { HeroGraph } from "@/components/landing/HeroGraph"
 import { PreviewGraph } from "@/components/landing/PreviewGraph"
 
@@ -28,7 +29,10 @@ function Nav() {
   return (
     <header className="sticky top-0 z-50 backdrop-blur border-b border-border bg-[#080808]/80">
       <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-        <span className="font-bold text-lg tracking-tight">Holdmind</span>
+        <div className="flex items-center gap-2">
+          <Image src="/logo.png" alt="Holdmind" width={36} height={36} className="rounded-sm" />
+          <span className="font-bold text-lg tracking-tight">Holdmind</span>
+        </div>
         <div className="flex items-center gap-3">
           <Link
             href="/login"
@@ -291,7 +295,10 @@ function Footer() {
   return (
     <footer className="border-t border-border py-6 px-12">
       <div className="max-w-5xl mx-auto flex items-center justify-between">
-        <span className="text-sm text-muted-foreground font-semibold">Holdmind</span>
+        <div className="flex items-center gap-2">
+          <Image src="/logo.png" alt="Holdmind" width={28} height={28} className="rounded-sm opacity-70" />
+          <span className="text-sm text-muted-foreground font-semibold">Holdmind</span>
+        </div>
         <div className="flex gap-6">
           <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Sign in
