@@ -30,4 +30,5 @@ jobs:
               --env-file .env \
               -p 8000:8000 \
               --name holdmind \
+              -v /root/memories:/data/memories \
               holdmind-backend
