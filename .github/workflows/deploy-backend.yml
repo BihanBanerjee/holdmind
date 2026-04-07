@@ -1,0 +1,33 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to DigitalOcean
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          script: |
+            cd ~/holdmind
+            git pull origin main
+            cd backend
+            docker build -t holdmind-backend .
+            docker stop holdmind || true
+            docker rm holdmind || true
+            docker run -d \
+              --restart unless-stopped \
+              --env-file .env \
+              -p 8000:8000 \
+              --name holdmind \
+              holdmind-backend
