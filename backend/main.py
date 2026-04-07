@@ -50,3 +50,4 @@ app.include_router(settings_router)
 def health(request: Request):
     return {"status": "ok"}
 
+
