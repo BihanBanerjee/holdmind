@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { HeroGraph } from "@/components/landing/HeroGraph"
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -11,6 +12,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
           <div className="relative flex h-full flex-col justify-between p-12">
             <Link href="/" className="flex items-center gap-2">
+              <Image src="/logo.png" alt="Holdmind" width={32} height={32} className="rounded-sm" />
               <span className="text-2xl font-bold text-white tracking-tight">Holdmind</span>
             </Link>
 
@@ -37,6 +39,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="mx-auto w-full max-w-sm">
             <div className="mb-8 lg:hidden">
               <Link href="/" className="flex items-center gap-2">
+                <Image src="/logo.png" alt="Holdmind" width={28} height={28} className="rounded-sm" />
                 <span className="text-xl font-bold tracking-tight">Holdmind</span>
               </Link>
             </div>
