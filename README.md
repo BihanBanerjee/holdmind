@@ -2,6 +2,8 @@
 
 Belief-centric memory AI. Holdmind extracts what you know, how you feel, and what you believe from every conversation — building a typed belief graph that makes the AI smarter over time.
 
+![Holdmind Demo](assets/holdmind-demo.png)
+
 Unauthenticated visitors see the public landing page at `/`. Authenticated users go straight to `/chat`.
 
 **Stack:** FastAPI · PostgreSQL · Qdrant · Next.js 15 · TypeScript
